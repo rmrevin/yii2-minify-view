@@ -1,6 +1,6 @@
 <?php
 /**
- * MinifyView.php
+ * View.php
  * @author Roman Revim
  * @link http://phptime.ru
  */
@@ -9,9 +9,8 @@ namespace rmrevin\yii\minify;
 
 use yii\helpers\FileHelper;
 use yii\helpers\Html;
-use yii\web\View;
 
-class MinifyView extends View
+class View extends \yii\web\View
 {
 
 	public $base_path = '@app/web/';
