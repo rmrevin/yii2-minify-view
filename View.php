@@ -13,9 +13,9 @@ use yii\helpers\Html;
 class View extends \yii\web\View
 {
 
-	public $base_path = '@app/web/';
+	public $base_path = '@app/web';
 
-	public $minify_path = '@app/web/minify/';
+	public $minify_path = '@app/web/minify';
 
 	public function init()
 	{
