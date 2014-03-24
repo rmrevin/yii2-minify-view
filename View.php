@@ -87,7 +87,7 @@ class View extends \yii\web\View
 			}
 			$long_hash = sha1($long_hash);
 
-			$css_minify_file = $this->minify_path . $long_hash . '.css';
+			$css_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . $long_hash . '.css';
 			if (!file_exists($css_minify_file)) {
 				$data = '';
 				$CssMin = new \CSSmin();
@@ -122,7 +122,7 @@ class View extends \yii\web\View
 					}
 					$long_hash = sha1($long_hash);
 
-					$js_minify_file = $this->minify_path . $long_hash . '.js';
+					$js_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . $long_hash . '.js';
 					if (!file_exists($js_minify_file)) {
 						$data = '';
 						foreach ($files as $file => $html) {
