@@ -17,6 +17,8 @@ class View extends \yii\web\View
 
 	public $minify_path = '@app/web/minify';
 
+	public $file_mode = 0664;
+
 	public function init()
 	{
 		parent::init();
@@ -96,6 +98,7 @@ class View extends \yii\web\View
 					$data .= $CssMin->run(file_get_contents($file));
 				}
 				file_put_contents($css_minify_file, $data);
+				chmod($css_minify_file, $this->file_mode);
 			}
 
 			$css_file = str_replace(\Yii::getAlias($this->base_path), '', $css_minify_file);
@@ -130,6 +133,7 @@ class View extends \yii\web\View
 							$data .= \JSMin::minify(file_get_contents($file));
 						}
 						file_put_contents($js_minify_file, $data);
+						chmod($js_minify_file, $this->file_mode);
 					}
 
 					$js_file = str_replace(\Yii::getAlias($this->base_path), '', $js_minify_file);
