@@ -19,6 +19,10 @@ class View extends \yii\web\View
 
 	public $file_mode = 0664;
 
+	public $schemas = [
+		'//', 'http://', 'https://', 'ftp://'
+	];
+
 	public function init()
 	{
 		parent::init();
@@ -52,14 +56,7 @@ class View extends \yii\web\View
 			self::PH_BODY_END => $this->renderBodyEndHtml($ajaxMode),
 		]);
 
-		unset(
-		$this->metaTags,
-		$this->linkTags,
-		$this->css,
-		$this->cssFiles,
-		$this->js,
-		$this->jsFiles
-		);
+		$this->clear();
 	}
 
 	private function registerAssetFiles($name)
@@ -94,8 +91,23 @@ class View extends \yii\web\View
 				$data = '';
 				$CssMin = new \CSSmin();
 				foreach ($css_files as $file) {
-					$file = \Yii::getAlias($this->base_path) . $file;
-					$data .= $CssMin->run(file_get_contents($file));
+					$content = file_get_contents(\Yii::getAlias($this->base_path) . $file);
+					preg_match_all('|url\(([^)]+)\)|is', $content, $m);
+					if (!empty($m[0])) {
+						$path = dirname($file);
+						$result = [];
+						foreach ($m[0] as $k => $v) {
+							$url = str_replace(['\'', '"'], '', $m[1][$k]);
+							if (preg_match('#^(' . implode('|', $this->schemas) . ')#is', $url)) {
+								$result[$m[1][$k]] = '\'' . $url . '\'';
+							} else {
+								$result[$m[1][$k]] = '\'' . $path . DIRECTORY_SEPARATOR . $url . '\'';
+							}
+						}
+						$content = str_replace(array_keys($result), array_values($result), $content);
+					}
+
+					$data .= $CssMin->run($content);
 				}
 				file_put_contents($css_minify_file, $data);
 				chmod($css_minify_file, $this->file_mode);
