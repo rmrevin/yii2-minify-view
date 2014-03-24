@@ -1,0 +1,29 @@
+{
+	"name": "rmrevin/yii2-minify-view",
+	"description": "Yii2 asset bundle for https://github.com/jboesch/Gritter/",
+	"keywords": ["yii2", "minify", "view", "js", "css"],
+	"type": "yii2-extension",
+	"license": "BSD-3-Clause",
+	"minimum-stability": "dev",
+	"support": {
+		"issues": "https://github.com/rmrevin/yii2-minify-view/issues?state=open",
+		"wiki": "https://github.com/rmrevin/yii2-minify-view/wiki",
+		"source": "https://github.com/rmrevin/yii2-minify-view"
+	},
+	"authors": [
+		{
+			"name": "Revin Roman",
+			"email": "xgismox@gmail.com",
+			"homepage": "http://phptime.ru/"
+		}
+	],
+	"require": {
+		"yiisoft/yii2": "*",
+		"mrclay/minify": "2.1.7"
+	},
+	"autoload": {
+		"psr-4": {
+			"rmrevin\\yii\\minify\\": ""
+		}
+	}
+}
