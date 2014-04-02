@@ -107,7 +107,7 @@ class View extends \yii\web\View
 						$content = str_replace(array_keys($result), array_values($result), $content);
 					}
 
-					$data .= $CssMin->run($content);
+					$data .= $CssMin->run($content) . ';' . PHP_EOL;
 				}
 				file_put_contents($css_minify_file, $data);
 				chmod($css_minify_file, $this->file_mode);
@@ -142,7 +142,7 @@ class View extends \yii\web\View
 						$data = '';
 						foreach ($files as $file => $html) {
 							$file = \Yii::getAlias($this->base_path) . $file;
-							$data .= \JSMin::minify(file_get_contents($file));
+							$data .= \JSMin::minify(file_get_contents($file)) . ';' . PHP_EOL;
 						}
 						file_put_contents($js_minify_file, $data);
 						chmod($js_minify_file, $this->file_mode);
