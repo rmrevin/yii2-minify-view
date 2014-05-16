@@ -9,19 +9,40 @@ namespace rmrevin\yii\minify;
 
 use yii\helpers\FileHelper;
 use yii\helpers\Html;
+use yii\helpers\StringHelper;
 
 class View extends \yii\web\View
 {
 
+	/**
+	 * @var string
+	 */
 	public $base_path = '@app/web';
 
+	/**
+	 * @var string
+	 */
 	public $minify_path = '@app/web/minify';
 
+	/**
+	 * @var bool|string charset forcibly assign, otherwise will use all of the files found charset
+	 */
+	public $force_charset = false;
+
+	/**
+	 * @var bool whether to change import its contents
+	 */
+	public $expand_imports = true;
+
+	/**
+	 * @var int chmod of minified file
+	 */
 	public $file_mode = 0664;
 
-	public $ignored_schemas = [
-		'//', 'http://', 'https://', 'ftp://'
-	];
+	/**
+	 * @var array schemes that will be ignored during normalization url
+	 */
+	public $schemas = ['//', 'http://', 'https://', 'ftp://'];
 
 	public function init()
 	{
@@ -31,9 +52,11 @@ class View extends \yii\web\View
 		if (!file_exists($minify_path)) {
 			FileHelper::createDirectory($minify_path);
 		}
+
 		if (!is_readable($minify_path)) {
 			throw new \RuntimeException(\Yii::t('app', 'Directory for compressed assets is not readable.'));
 		}
+
 		if (!is_writable($minify_path)) {
 			throw new \RuntimeException(\Yii::t('app', 'Directory for compressed assets is not writable.'));
 		}
@@ -61,16 +84,18 @@ class View extends \yii\web\View
 
 	private function registerAssetFiles($name)
 	{
-		if (!isset($this->assetBundles[$name])) {
+		if (!isset($this->assetBundles[$name]))
 			return;
-		}
+
 		$bundle = $this->assetBundles[$name];
 		if ($bundle) {
 			foreach ($bundle->depends as $dep) {
 				$this->registerAssetFiles($dep);
 			}
+
 			$bundle->registerAssetFiles($this);
 		}
+
 		unset($this->assetBundles[$name]);
 	}
 
@@ -88,20 +113,21 @@ class View extends \yii\web\View
 
 			$css_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . $long_hash . '.css';
 			if (!file_exists($css_minify_file)) {
+				$css = '';
 				$charsets = '';
 				$imports = '';
 				$fonts = '';
-				$minified = '';
-				$CssMin = new \CSSmin();
+
 				foreach ($css_files as $file) {
-					$content = file_get_contents(\Yii::getAlias($this->base_path) . $file);
+					$content = file_get_contents(\Yii::getAlias($this->base_path) . $file) . PHP_EOL;
+
 					preg_match_all('|url\(([^)]+)\)|is', $content, $m);
 					if (!empty($m[0])) {
 						$path = dirname($file);
 						$result = [];
 						foreach ($m[0] as $k => $v) {
 							$url = str_replace(['\'', '"'], '', $m[1][$k]);
-							if (preg_match('#^(' . implode('|', $this->ignored_schemas) . ')#is', $url)) {
+							if (preg_match('#^(' . implode('|', $this->schemas) . ')#is', $url)) {
 								$result[$m[1][$k]] = '\'' . $url . '\'';
 							} else {
 								$result[$m[1][$k]] = '\'' . $path . DIRECTORY_SEPARATOR . $url . '\'';
@@ -110,33 +136,62 @@ class View extends \yii\web\View
 						$content = str_replace(array_keys($result), array_values($result), $content);
 					}
 
-					preg_match_all('|(\@charset[^;]+)|is', $content, $m);
-					if (!empty($m[0])) {
-						$string = $m[0][0] . ';';
-						$charsets .= $string . PHP_EOL;
-						$content = str_replace($string, '', $content);
-					}
-
-					preg_match_all('|(\@import[^;]+)|is', $content, $m);
-					if (!empty($m[0])) {
-						$string = $m[0][0] . ';';
-						$imports .= $string . PHP_EOL;
-						$content = str_replace($string, '', $content);
-					}
-
-					preg_match_all('|(\@font-face\{[^}]+\})|is', $content, $m);
-					if (!empty($m[0])) {
-						$string = $m[0][0];
-						$fonts .= $string . PHP_EOL;
-						$content = str_replace($string, '', $content);
-					}
-
-					$minified .= $CssMin->run($content) . ';' . PHP_EOL;
+					$css .= $content;
 				}
 
-				$data = $charsets . $imports . $fonts . $minified;
+				if (true === $this->expand_imports) {
+					preg_match_all('|(\@import\s([^;]+))|is', $css, $m);
+					if (!empty($m[0])) {
+						foreach ($m[0] as $k => $v) {
+							$import_url = $m[2][$k];
+							if (!empty($import_url)) {
+								$import_content = $this->getImportContent($import_url);
+								if (!empty($import_content)) {
+									$css = str_replace($m[0][$k], $import_content, $css);
+								}
+							}
+						}
+					}
+				}
 
-				file_put_contents($css_minify_file, $data);
+				$css = (new \CSSmin())->run($css);
+
+				if (false !== $this->force_charset) {
+					$charsets = '@charset "' . (string)$this->force_charset . '";' . PHP_EOL;
+				}
+
+				preg_match_all('|\@charset[^;]+|is', $css, $m);
+				if (!empty($m[0])) {
+					foreach ($m[0] as $k => $v) {
+						$string = $m[0][$k] . ';';
+						$css = str_replace($string, '', $css);
+						if (false === $this->force_charset) {
+							$charsets .= $string . PHP_EOL;
+						}
+					}
+				}
+
+				preg_match_all('|\@import[^;]+|is', $css, $m);
+				if (!empty($m[0])) {
+					foreach ($m[0] as $k => $v) {
+						$string = $m[0][$k] . ';';
+						$imports .= $string . PHP_EOL;
+						$css = str_replace($string, '', $css);
+					}
+				}
+
+				preg_match_all('|\@font-face\{[^}]+\}|is', $css, $m);
+				if (!empty($m[0])) {
+					foreach ($m[0] as $k => $v) {
+						$string = $m[0][$k];
+						$fonts .= $string . PHP_EOL;
+						$css = str_replace($string, '', $css);
+					}
+				}
+
+				$css = $charsets . $imports . $fonts . $css;
+
+				file_put_contents($css_minify_file, $css);
 				chmod($css_minify_file, $this->file_mode);
 			}
 
@@ -180,5 +235,22 @@ class View extends \yii\web\View
 				}
 			}
 		}
+	}
+
+	private function getImportContent($url)
+	{
+		$result = null;
+
+		if ('url(' === StringHelper::byteSubstr($url, 0, 4)) {
+			$url = str_replace(['url(\'', 'url(', '\')', ')'], '', $url);
+
+			if (StringHelper::byteSubstr($url, 0, 2) === '//')
+				$url = preg_replace('|^//|', 'http://', $url, 1);
+
+			if (!empty($url))
+				$result = file_get_contents($url);
+		}
+
+		return $result;
 	}
 }
