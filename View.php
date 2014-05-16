@@ -15,12 +15,12 @@ class View extends \yii\web\View
 {
 
 	/**
-	 * @var string
+	 * @var string path alias to web base
 	 */
 	public $base_path = '@app/web';
 
 	/**
-	 * @var string
+	 * @var string path alias to save minify result
 	 */
 	public $minify_path = '@app/web/minify';
 
@@ -30,7 +30,7 @@ class View extends \yii\web\View
 	public $force_charset = false;
 
 	/**
-	 * @var bool whether to change import its contents
+	 * @var bool whether to change @import on content
 	 */
 	public $expand_imports = true;
 
@@ -101,17 +101,27 @@ class View extends \yii\web\View
 
 	private function minify()
 	{
-		$long_hash = '';
+		$this
+			->minifyCSS()
+			->minifyJS();
+	}
+
+	/**
+	 * @return self
+	 */
+	private function minifyCSS()
+	{
 		if (!empty($this->cssFiles)) {
 			$css_files = array_keys($this->cssFiles);
+
+			$long_hash = '';
 			foreach ($css_files as $file) {
 				$file = \Yii::getAlias($this->base_path) . $file;
 				$hash = sha1_file($file);
 				$long_hash .= $hash;
 			}
-			$long_hash = sha1($long_hash);
 
-			$css_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . $long_hash . '.css';
+			$css_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . sha1($long_hash) . '.css';
 			if (!file_exists($css_minify_file)) {
 				$css = '';
 				$charsets = '';
@@ -199,6 +209,14 @@ class View extends \yii\web\View
 			$this->cssFiles = [$css_file => Html::cssFile($css_file)];
 		}
 
+		return $this;
+	}
+
+	/**
+	 * @return self
+	 */
+	private function minifyJS()
+	{
 		if (!empty($this->jsFiles)) {
 			$only_pos = [self::POS_END];
 			$js_files = $this->jsFiles;
@@ -217,15 +235,17 @@ class View extends \yii\web\View
 						$hash = sha1_file($file);
 						$long_hash .= $hash;
 					}
-					$long_hash = sha1($long_hash);
 
-					$js_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . $long_hash . '.js';
+					$js_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . sha1($long_hash) . '.js';
 					if (!file_exists($js_minify_file)) {
 						$data = '';
 						foreach ($files as $file => $html) {
 							$file = \Yii::getAlias($this->base_path) . $file;
-							$data .= \JSMin::minify(file_get_contents($file)) . ';' . PHP_EOL;
+							$data .= file_get_contents($file) . ';' . PHP_EOL;
 						}
+
+						$data = \JSMin::minify($data);
+
 						file_put_contents($js_minify_file, $data);
 						chmod($js_minify_file, $this->file_mode);
 					}
@@ -235,6 +255,8 @@ class View extends \yii\web\View
 				}
 			}
 		}
+
+		return $this;
 	}
 
 	private function getImportContent($url)
