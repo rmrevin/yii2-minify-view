@@ -35,6 +35,11 @@ class View extends \yii\web\View
 	public $expand_imports = true;
 
 	/**
+	 * @var int
+	 */
+	public $css_linebreak_pos = 2048;
+
+	/**
 	 * @var int chmod of minified file
 	 */
 	public $file_mode = 0664;
@@ -129,7 +134,7 @@ class View extends \yii\web\View
 				$fonts = '';
 
 				foreach ($css_files as $file) {
-					$content = file_get_contents(\Yii::getAlias($this->base_path) . $file) . PHP_EOL;
+					$content = file_get_contents(\Yii::getAlias($this->base_path) . $file);
 
 					preg_match_all('|url\(([^)]+)\)|is', $content, $m);
 					if (!empty($m[0])) {
@@ -150,10 +155,10 @@ class View extends \yii\web\View
 				}
 
 				if (true === $this->expand_imports) {
-					preg_match_all('|(\@import\s([^;]+))|is', $css, $m);
+					preg_match_all('|\@import\s([^;]+);|is', $css, $m);
 					if (!empty($m[0])) {
 						foreach ($m[0] as $k => $v) {
-							$import_url = $m[2][$k];
+							$import_url = $m[1][$k];
 							if (!empty($import_url)) {
 								$import_content = $this->getImportContent($import_url);
 								if (!empty($import_content)) {
@@ -164,7 +169,7 @@ class View extends \yii\web\View
 					}
 				}
 
-				$css = (new \CSSmin())->run($css);
+				$css = (new \CSSmin())->run($css, $this->css_linebreak_pos);
 
 				if (false !== $this->force_charset) {
 					$charsets = '@charset "' . (string)$this->force_charset . '";' . PHP_EOL;
@@ -238,15 +243,15 @@ class View extends \yii\web\View
 
 					$js_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . sha1($long_hash) . '.js';
 					if (!file_exists($js_minify_file)) {
-						$data = '';
+						$js = '';
 						foreach ($files as $file => $html) {
 							$file = \Yii::getAlias($this->base_path) . $file;
-							$data .= file_get_contents($file) . ';' . PHP_EOL;
+							$js .= file_get_contents($file) . ';' . PHP_EOL;
 						}
 
-						$data = \JSMin::minify($data);
+						$js = (new \JSMin($js))->min();
 
-						file_put_contents($js_minify_file, $data);
+						file_put_contents($js_minify_file, $js);
 						chmod($js_minify_file, $this->file_mode);
 					}
 
