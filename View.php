@@ -19,7 +19,7 @@ class View extends \yii\web\View
 
 	public $file_mode = 0664;
 
-	public $ignored_schemas = [
+	public $schemas = [
 		'//', 'http://', 'https://', 'ftp://'
 	];
 
@@ -88,7 +88,9 @@ class View extends \yii\web\View
 
 			$css_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . $long_hash . '.css';
 			if (!file_exists($css_minify_file)) {
-				$data = '';
+				$charsets = '';
+				$imports = '';
+				$fonts = '';
 				$minified = '';
 				$CssMin = new \CSSmin();
 				foreach ($css_files as $file) {
@@ -99,7 +101,7 @@ class View extends \yii\web\View
 						$result = [];
 						foreach ($m[0] as $k => $v) {
 							$url = str_replace(['\'', '"'], '', $m[1][$k]);
-							if (preg_match('#^(' . implode('|', $this->ignored_schemas) . ')#is', $url)) {
+							if (preg_match('#^(' . implode('|', $this->schemas) . ')#is', $url)) {
 								$result[$m[1][$k]] = '\'' . $url . '\'';
 							} else {
 								$result[$m[1][$k]] = '\'' . $path . DIRECTORY_SEPARATOR . $url . '\'';
@@ -111,27 +113,28 @@ class View extends \yii\web\View
 					preg_match_all('|(\@charset[^;]+)|is', $content, $m);
 					if (!empty($m[0])) {
 						$string = $m[0][0] . ';';
-						$data = $string . PHP_EOL . $data;
+						$charsets .= $string . PHP_EOL;
 						$content = str_replace($string, '', $content);
 					}
 
 					preg_match_all('|(\@import[^;]+)|is', $content, $m);
 					if (!empty($m[0])) {
 						$string = $m[0][0] . ';';
-						$data .= $string . PHP_EOL;
+						$imports .= $string . PHP_EOL;
 						$content = str_replace($string, '', $content);
 					}
 
 					preg_match_all('|(\@font-face\{[^}]+\})|is', $content, $m);
 					if (!empty($m[0])) {
-						$data .= $m[0][0] . PHP_EOL;
-						$content = str_replace($m[0][0], '', $content);
+						$string = $m[0][0];
+						$fonts .= $string . PHP_EOL;
+						$content = str_replace($string, '', $content);
 					}
 
 					$minified .= $CssMin->run($content) . ';' . PHP_EOL;
 				}
 
-				$data .= $minified;
+				$data = $charsets . $imports . $fonts . $minified;
 
 				file_put_contents($css_minify_file, $data);
 				chmod($css_minify_file, $this->file_mode);
