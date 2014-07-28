@@ -8,7 +8,7 @@ namespace rmrevin\yii\minify;
 
 class HtmlCompressor
 {
-    public static function make($data, $options = null)
+    public static function compress($data, $options = null)
     {
         return html_compress($data, $options);
     }
