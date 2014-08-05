@@ -6,6 +6,10 @@
 
 namespace rmrevin\yii\minify;
 
+/**
+ * Class HtmlCompressor
+ * @package rmrevin\yii\minify
+ */
 class HtmlCompressor
 {
     public static function compress($data, $options = null)

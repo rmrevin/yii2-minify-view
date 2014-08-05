@@ -10,6 +10,10 @@ use yii\helpers\FileHelper;
 use yii\helpers\Html;
 use yii\helpers\StringHelper;
 
+/**
+ * Class View
+ * @package rmrevin\yii\minify
+ */
 class View extends \yii\web\View
 {
 
