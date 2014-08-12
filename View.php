@@ -126,7 +126,7 @@ class View extends \yii\web\View
     /**
      * @return self
      */
-    private function minifyCSS()
+    protected function minifyCSS()
     {
         if (!empty($this->cssFiles)) {
             $css_files = array_keys($this->cssFiles);
@@ -232,7 +232,7 @@ class View extends \yii\web\View
     /**
      * @return self
      */
-    private function minifyJS()
+    protected function minifyJS()
     {
         if (!empty($this->jsFiles)) {
             $js_files = $this->jsFiles;
