@@ -28,6 +28,11 @@ class View extends \yii\web\View
     public $minify_path = '@app/web/minify';
 
     /**
+     * @var array positions of js files to be minified
+     */
+    public $js_position = [ self::POS_END ];
+
+    /**
      * @var bool|string charset forcibly assign, otherwise will use all of the files found charset
      */
     public $force_charset = false;
@@ -121,7 +126,7 @@ class View extends \yii\web\View
     /**
      * @return self
      */
-    private function minifyCSS()
+    protected function minifyCSS()
     {
         if (!empty($this->cssFiles)) {
             $css_files = array_keys($this->cssFiles);
@@ -227,13 +232,12 @@ class View extends \yii\web\View
     /**
      * @return self
      */
-    private function minifyJS()
+    protected function minifyJS()
     {
         if (!empty($this->jsFiles)) {
-            $only_pos = [self::POS_END];
             $js_files = $this->jsFiles;
             foreach ($js_files as $position => $files) {
-                if (false === in_array($position, $only_pos)) {
+                if (false === in_array($position, $this->js_position)) {
                     $this->jsFiles[$position] = [];
                     foreach ($files as $file => $html) {
                         $this->jsFiles[$position][$file] = Html::jsFile($file);
