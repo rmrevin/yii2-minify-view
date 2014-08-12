@@ -7,7 +7,7 @@ Add in `composer.json`:
 ```
 {
     "require": {
-        "rmrevin/yii2-minify-view": "1.2.2"
+        "rmrevin/yii2-minify-view": "1.3.1"
     }
 }
 ```
