@@ -1,6 +1,8 @@
 Yii 2 Minify View Component
 ===========================
 
+[![Dependency Status](https://www.versioneye.com/user/projects/54119b4b9e1622a6510000e1/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54119b4b9e1622a6510000e1)
+
 Installation
 ------------
 Add in `composer.json`:

@@ -30,7 +30,7 @@ class View extends \yii\web\View
     /**
      * @var array positions of js files to be minified
      */
-    public $js_position = [ self::POS_END ];
+    public $js_position = [self::POS_END];
 
     /**
      * @var bool|string charset forcibly assign, otherwise will use all of the files found charset
@@ -282,11 +282,13 @@ class View extends \yii\web\View
         if ('url(' === StringHelper::byteSubstr($url, 0, 4)) {
             $url = str_replace(['url(\'', 'url(', '\')', ')'], '', $url);
 
-            if (StringHelper::byteSubstr($url, 0, 2) === '//')
+            if (StringHelper::byteSubstr($url, 0, 2) === '//') {
                 $url = preg_replace('|^//|', 'http://', $url, 1);
+            }
 
-            if (!empty($url))
+            if (!empty($url)) {
                 $result = file_get_contents($url);
+            }
         }
 
         return $result;
