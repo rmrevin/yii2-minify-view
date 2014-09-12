@@ -6,9 +6,7 @@
 
 namespace rmrevin\yii\minify;
 
-use yii\helpers\FileHelper;
-use yii\helpers\Html;
-use yii\helpers\StringHelper;
+use yii\helpers;
 
 /**
  * Class View
@@ -61,20 +59,23 @@ class View extends \yii\web\View
     {
         parent::init();
 
-        $minify_path = $this->minify_path = \Yii::getAlias($this->minify_path);
-        if (!file_exists($minify_path)) {
-            FileHelper::createDirectory($minify_path);
+        $min_path = $this->minify_path = \Yii::getAlias($this->minify_path);
+        if (!file_exists($min_path)) {
+            helpers\FileHelper::createDirectory($min_path);
         }
 
-        if (!is_readable($minify_path)) {
+        if (!is_readable($min_path)) {
             throw new \RuntimeException(\Yii::t('app', 'Directory for compressed assets is not readable.'));
         }
 
-        if (!is_writable($minify_path)) {
+        if (!is_writable($min_path)) {
             throw new \RuntimeException(\Yii::t('app', 'Directory for compressed assets is not writable.'));
         }
     }
 
+    /**
+     * @inherit
+     */
     public function endPage($ajaxMode = false)
     {
         $this->trigger(self::EVENT_END_PAGE);
@@ -98,6 +99,9 @@ class View extends \yii\web\View
         $this->clear();
     }
 
+    /**
+     * @inherit
+     */
     protected function registerAssetFiles($name)
     {
         if (!isset($this->assetBundles[$name])) {
@@ -153,8 +157,9 @@ class View extends \yii\web\View
                         $path = dirname($file);
                         $result = [];
                         foreach ($m[0] as $k => $v) {
-                            if ( 0 === strpos( $m[1][$k], 'data:' ) )
+                            if (0 === strpos($m[1][$k], 'data:')) {
                                 continue;
+                            }
                             $url = str_replace(['\'', '"'], '', $m[1][$k]);
                             if (preg_match('#^(' . implode('|', $this->schemas) . ')#is', $url)) {
                                 $result[$m[1][$k]] = '\'' . $url . '\'';
@@ -225,7 +230,7 @@ class View extends \yii\web\View
             }
 
             $css_file = str_replace(\Yii::getAlias($this->base_path), '', $css_minify_file);
-            $this->cssFiles = [$css_file => Html::cssFile($css_file)];
+            $this->cssFiles = [$css_file => helpers\Html::cssFile($css_file)];
         }
 
         return $this;
@@ -242,7 +247,7 @@ class View extends \yii\web\View
                 if (false === in_array($position, $this->js_position)) {
                     $this->jsFiles[$position] = [];
                     foreach ($files as $file => $html) {
-                        $this->jsFiles[$position][$file] = Html::jsFile($file);
+                        $this->jsFiles[$position][$file] = helpers\Html::jsFile($file);
                     }
                 } else {
                     $this->jsFiles[$position] = [];
@@ -269,7 +274,7 @@ class View extends \yii\web\View
                     }
 
                     $js_file = str_replace(\Yii::getAlias($this->base_path), '', $js_minify_file);
-                    $this->jsFiles[$position][$js_file] = Html::jsFile($js_file);
+                    $this->jsFiles[$position][$js_file] = helpers\Html::jsFile($js_file);
                 }
             }
         }
@@ -277,14 +282,18 @@ class View extends \yii\web\View
         return $this;
     }
 
+    /**
+     * @param string $url
+     * @return null|string
+     */
     private function getImportContent($url)
     {
         $result = null;
 
-        if ('url(' === StringHelper::byteSubstr($url, 0, 4)) {
+        if ('url(' === helpers\StringHelper::byteSubstr($url, 0, 4)) {
             $url = str_replace(['url(\'', 'url(', '\')', ')'], '', $url);
 
-            if (StringHelper::byteSubstr($url, 0, 2) === '//') {
+            if (helpers\StringHelper::byteSubstr($url, 0, 2) === '//') {
                 $url = preg_replace('|^//|', 'http://', $url, 1);
             }
 

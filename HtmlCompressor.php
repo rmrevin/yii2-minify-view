@@ -12,6 +12,21 @@ namespace rmrevin\yii\minify;
  */
 class HtmlCompressor
 {
+
+    /**
+     * @param string $data is either a handle to an open file, or an HTML string
+     * @param null|array $options key => value array of execute options
+     * The possible keys are:
+     *
+     *  - `c` or `no-comments` - removes HTML comments
+     *  - `o` or `overwrite` - overwrite input file with compressed version
+     *  - `s` or `stats` - output filesize savings calculation
+     *  - `x` or `extra` - perform extra (possibly unsafe) compression operations
+     *
+     * Example: $options = ['no-comments' => true, 'overwrite' => true]
+     *
+     * @return string
+     */
     public static function compress($data, $options = null)
     {
         return html_compress($data, $options);
@@ -46,8 +61,6 @@ class HtmlCompressor
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
-// $data is either a handle to an open file, or an HTML string
 function html_compress($data, $options = null)
 {
     if (!isset($options)) {

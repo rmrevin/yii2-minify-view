@@ -1,0 +1,12 @@
+build:
+    environment:
+        php:
+            version: 5.5.12
+checks:
+    php:
+        code_rating: true
+        duplication: true
+tools:
+    php_sim: true
+    php_pdepend: true
+    php_analyzer: true
