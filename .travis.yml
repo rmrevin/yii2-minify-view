@@ -23,3 +23,10 @@ install:
   - composer self-update && composer --version
   - export PATH="$HOME/.composer/vendor/bin:$PATH"
   - composer install
+
+script:
+  - phpunit --verbose --coverage-clover=coverage/coverage.clover
+
+after_script:
+  - wget https://scrutinizer-ci.com/ocular.phar
+  - php ocular.phar code-coverage:upload --format=php-clover coverage/coverage.clover

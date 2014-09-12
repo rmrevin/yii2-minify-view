@@ -2,6 +2,9 @@ build:
     environment:
         php:
             version: 5.5.12
+    tests:
+            override:
+                - phpunit
 checks:
     php:
         code_rating: true
@@ -10,3 +13,6 @@ tools:
     php_sim: true
     php_pdepend: true
     php_analyzer: true
+filter:
+    excluded_paths:
+        - tests/*
