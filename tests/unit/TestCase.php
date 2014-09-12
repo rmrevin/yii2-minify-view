@@ -4,9 +4,10 @@
  * @author Revin Roman http://phptime.ru
  */
 
-namespace rmrevin\yii\fontawesome\tests\unit;
+namespace rmrevin\yii\minify\tests\unit;
 
 use yii\helpers\ArrayHelper;
+use yii\helpers\FileHelper;
 
 /**
  * Class TestCase
@@ -21,7 +22,16 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         parent::setUp();
+        FileHelper::createDirectory($this->getParam('components')['assetManager']['basePath']);
         $this->mock_application();
+    }
+
+    protected function tearDown()
+    {
+        FileHelper::removeDirectory($this->getParam('components')['view']['minify_path']);
+        FileHelper::removeDirectory($this->getParam('components')['assetManager']['basePath']);
+        $this->destroyApplication();
+        parent::tearDown();
     }
 
     /**
@@ -32,10 +42,18 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     protected function mock_application($appClass = '\yii\console\Application')
     {
         // for update self::$params
-        $this->get_param('id');
+        $this->getParam('id');
 
         /** @var \yii\console\Application $app */
         new $appClass(self::$params);
+    }
+
+    /**
+     * Destroys the application instance created by [[mockApplication]].
+     */
+    protected function destroyApplication()
+    {
+        \Yii::$app = null;
     }
 
     /**
@@ -44,7 +62,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @param mixed $default default value to use when param is not set.
      * @return mixed the value of the configuration param
      */
-    public function get_param($name, $default = null)
+    public function getParam($name, $default = null)
     {
         if (self::$params === null) {
             self::$params = require(__DIR__ . '/config/main.php');
@@ -55,18 +73,5 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         }
 
         return isset(self::$params[$name]) ? self::$params[$name] : $default;
-    }
-
-    protected function tearDown()
-    {
-        parent::tearDown();
-    }
-
-    /**
-     * Destroys application in Yii::$app by setting it to null.
-     */
-    protected function destroy_application()
-    {
-        \Yii::$app = null;
     }
 }

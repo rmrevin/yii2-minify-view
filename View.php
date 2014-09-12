@@ -55,21 +55,24 @@ class View extends \yii\web\View
      */
     public $schemas = ['//', 'http://', 'https://', 'ftp://'];
 
+    /**
+     * @throws \rmrevin\yii\minify\Exception
+     */
     public function init()
     {
         parent::init();
 
-        $min_path = $this->minify_path = \Yii::getAlias($this->minify_path);
-        if (!file_exists($min_path)) {
-            helpers\FileHelper::createDirectory($min_path);
+        $minify_path = $this->minify_path = \Yii::getAlias($this->minify_path);
+        if (!file_exists($minify_path)) {
+            helpers\FileHelper::createDirectory($minify_path);
         }
 
-        if (!is_readable($min_path)) {
-            throw new \RuntimeException(\Yii::t('app', 'Directory for compressed assets is not readable.'));
+        if (!is_readable($minify_path)) {
+            throw new Exception('Directory for compressed assets is not readable.');
         }
 
-        if (!is_writable($min_path)) {
-            throw new \RuntimeException(\Yii::t('app', 'Directory for compressed assets is not writable.'));
+        if (!is_writable($minify_path)) {
+            throw new Exception('Directory for compressed assets is not writable.');
         }
     }
 
@@ -135,7 +138,7 @@ class View extends \yii\web\View
         if (!empty($this->cssFiles)) {
             $css_files = array_keys($this->cssFiles);
 
-            $css_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . $this->_getSummaryFilesHash($css_files) . '.css';
+            $css_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . $this->_getSummaryFilesHash($this->cssFiles) . '.css';
             if (!file_exists($css_minify_file)) {
                 $css = '';
                 $charsets = '';

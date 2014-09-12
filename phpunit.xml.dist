@@ -13,7 +13,7 @@
     </filter>
     <testsuites>
         <testsuite name="Test Suite">
-            <directory>./tests/unit/minify-view</directory>
+            <directory>./tests/unit/view</directory>
         </testsuite>
     </testsuites>
     <logging>
