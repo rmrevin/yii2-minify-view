@@ -135,14 +135,7 @@ class View extends \yii\web\View
         if (!empty($this->cssFiles)) {
             $css_files = array_keys($this->cssFiles);
 
-            $long_hash = '';
-            foreach ($css_files as $file) {
-                $file = \Yii::getAlias($this->base_path) . $file;
-                $hash = sha1_file($file);
-                $long_hash .= $hash;
-            }
-
-            $css_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . sha1($long_hash) . '.css';
+            $css_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . $this->_getSummaryFilesHash($css_files) . '.css';
             if (!file_exists($css_minify_file)) {
                 $css = '';
                 $charsets = '';
@@ -194,33 +187,23 @@ class View extends \yii\web\View
                     $charsets = '@charset "' . (string)$this->force_charset . '";' . PHP_EOL;
                 }
 
-                preg_match_all('|\@charset[^;]+|is', $css, $m);
-                if (!empty($m[0])) {
-                    foreach ($m[0] as $k => $v) {
-                        $string = $m[0][$k] . ';';
-                        $css = str_replace($string, '', $css);
-                        if (false === $this->force_charset) {
-                            $charsets .= $string . PHP_EOL;
-                        }
+                foreach ($this->getAllCharsets($css) as $string) {
+                    $string = $string . ';';
+                    $css = str_replace($string, '', $css);
+                    if (false === $this->force_charset) {
+                        $charsets .= $string . PHP_EOL;
                     }
                 }
 
-                preg_match_all('|\@import[^;]+|is', $css, $m);
-                if (!empty($m[0])) {
-                    foreach ($m[0] as $k => $v) {
-                        $string = $m[0][$k] . ';';
-                        $imports .= $string . PHP_EOL;
-                        $css = str_replace($string, '', $css);
-                    }
+                foreach ($this->getAllImports($css) as $string) {
+                    $string = $string . ';';
+                    $imports .= $string . PHP_EOL;
+                    $css = str_replace($string, '', $css);
                 }
 
-                preg_match_all('|\@font-face\{[^}]+\}|is', $css, $m);
-                if (!empty($m[0])) {
-                    foreach ($m[0] as $k => $v) {
-                        $string = $m[0][$k];
-                        $fonts .= $string . PHP_EOL;
-                        $css = str_replace($string, '', $css);
-                    }
+                foreach ($this->getAllFontFace($css) as $string) {
+                    $fonts .= $string . PHP_EOL;
+                    $css = str_replace($string, '', $css);
                 }
 
                 $css = $charsets . $imports . $fonts . $css;
@@ -252,14 +235,7 @@ class View extends \yii\web\View
                 } else {
                     $this->jsFiles[$position] = [];
 
-                    $long_hash = '';
-                    foreach ($files as $file => $html) {
-                        $file = \Yii::getAlias($this->base_path) . $file;
-                        $hash = sha1_file($file);
-                        $long_hash .= $hash;
-                    }
-
-                    $js_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . sha1($long_hash) . '.js';
+                    $js_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . $this->_getSummaryFilesHash($files) . '.js';
                     if (!file_exists($js_minify_file)) {
                         $js = '';
                         foreach ($files as $file => $html) {
@@ -283,6 +259,33 @@ class View extends \yii\web\View
     }
 
     /**
+     * @param string $css
+     * @return array
+     */
+    private function getAllCharsets($css)
+    {
+        return $this->_getAllPattern($css, '|\@charset[^;]+|is');
+    }
+
+    /**
+     * @param string $css
+     * @return array
+     */
+    private function getAllImports($css)
+    {
+        return $this->_getAllPattern($css, '|\@import[^;]+|is');
+    }
+
+    /**
+     * @param string $css
+     * @return array
+     */
+    private function getAllFontFace($css)
+    {
+        return $this->_getAllPattern($css, '|\@font-face\{[^}]+\}|is');
+    }
+
+    /**
      * @param string $url
      * @return null|string
      */
@@ -300,6 +303,32 @@ class View extends \yii\web\View
             if (!empty($url)) {
                 $result = file_get_contents($url);
             }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string $css
+     * @param string $pattern
+     * @return array
+     */
+    private function _getAllPattern($css, $pattern)
+    {
+        preg_match_all($pattern, $css, $m);
+
+        return $m[0];
+    }
+
+    /**
+     * @param array $files
+     * @return string
+     */
+    private function _getSummaryFilesHash($files)
+    {
+        $result = '';
+        foreach ($files as $file => $html) {
+            $result .= sha1_file(\Yii::getAlias($this->base_path) . $file);
         }
 
         return $result;
