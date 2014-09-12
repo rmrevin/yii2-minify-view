@@ -62,7 +62,7 @@ class View extends \yii\web\View
     {
         parent::init();
 
-        $minify_path = $this->minify_path = \Yii::getAlias($this->minify_path);
+        $minify_path = $this->minify_path = (string)\Yii::getAlias($this->minify_path);
         if (!file_exists($minify_path)) {
             helpers\FileHelper::createDirectory($minify_path);
         }
