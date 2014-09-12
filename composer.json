@@ -1,9 +1,9 @@
 {
 	"name": "rmrevin/yii2-minify-view",
-	"description": "Yii2 view componen with minification css & js",
+	"description": "Yii2 View component with minification css & js",
 	"keywords": ["yii2", "minify", "view", "js", "css"],
 	"type": "yii2-extension",
-	"license": "BSD-3-Clause",
+	"license": "MIT",
 	"minimum-stability": "dev",
 	"support": {
 		"issues": "https://github.com/rmrevin/yii2-minify-view/issues?state=open",
