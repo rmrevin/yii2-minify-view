@@ -23,7 +23,7 @@ class HtmlCompressor
      *  - `s` or `stats` - output filesize savings calculation
      *  - `x` or `extra` - perform extra (possibly unsafe) compression operations
      *
-     * Example: $options = ['no-comments' => true, 'overwrite' => true]
+     * Example: HtmlCompressor::compress($HtmlCode, $options = ['no-comments' => true, 'overwrite' => true])
      *
      * @return string
      */
