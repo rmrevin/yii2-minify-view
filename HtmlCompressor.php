@@ -19,7 +19,6 @@ class HtmlCompressor
      * The possible keys are:
      *
      *  - `c` or `no-comments` - removes HTML comments
-     *  - `o` or `overwrite` - overwrite input file with compressed version
      *  - `s` or `stats` - output filesize savings calculation
      *  - `x` or `extra` - perform extra (possibly unsafe) compression operations
      *
@@ -107,16 +106,16 @@ function html_compress($data, $options = null)
         }
     }
 
-    // Remove HTML comments...
-    if (array_key_exists('c', $options) || array_key_exists('no-comments', $options)) {
-        $out = preg_replace('/(<!--.*?-->)/ms', '', $out);
-        $out = str_replace('<!>', '', $out);
-    }
-
     // Perform any extra (unsafe) compression techniques...
     if (array_key_exists('x', $options) || array_key_exists('extra', $options)) {
         // Can break layouts that are dependent on whitespace between tags
         $out = str_replace(">\n<", '><', $out);
+    }
+
+    // Remove HTML comments...
+    if (array_key_exists('c', $options) || array_key_exists('no-comments', $options)) {
+        $out = preg_replace('/(<!--.*?-->)/ms', '', $out);
+        $out = str_replace('<!>', '', $out);
     }
 
     // Remove the trailing \n
@@ -130,17 +129,7 @@ function html_compress($data, $options = null)
         $echo .= "Savings: " . round((1 - strlen($out) / $bytecount) * 100, 2) . "%\n";
         echo $echo;
     } else {
-        if (array_key_exists('o', $options) || array_key_exists('overwrite', $options)) {
-            if ($GLOBALS['argc'] > 1 && is_writable($GLOBALS['argv'][$GLOBALS['argc'] - 1])) {
-                file_put_contents($GLOBALS['argv'][$GLOBALS['argc'] - 1], $out);
-
-                return true;
-            } else {
-                return "Error: could not write to " . $GLOBALS['argv'][$GLOBALS['argc'] - 1] . "\n";
-            }
-        } else {
-            return $out;
-        }
+        return $out;
     }
 
     return false;

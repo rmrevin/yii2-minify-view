@@ -23,11 +23,13 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     {
         parent::setUp();
         FileHelper::createDirectory($this->getParam('components')['assetManager']['basePath']);
+        file_put_contents(__DIR__ . '/runtime/compress.html', '');
         $this->mock_application();
     }
 
     protected function tearDown()
     {
+//        unlink(__DIR__ . '/runtime/compress.html');
         FileHelper::removeDirectory($this->getParam('components')['view']['minify_path']);
         FileHelper::removeDirectory($this->getParam('components')['assetManager']['basePath']);
         $this->destroyApplication();
