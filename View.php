@@ -77,7 +77,7 @@ class View extends \yii\web\View
     }
 
     /**
-     * @inherit
+     * @inheritdoc
      */
     public function endPage($ajaxMode = false)
     {
@@ -103,7 +103,7 @@ class View extends \yii\web\View
     }
 
     /**
-     * @inherit
+     * @inheritdoc
      */
     protected function registerAssetFiles($name)
     {
@@ -334,6 +334,6 @@ class View extends \yii\web\View
             $result .= sha1_file(\Yii::getAlias($this->base_path) . $file);
         }
 
-        return $result;
+        return sha1($result);
     }
 }
