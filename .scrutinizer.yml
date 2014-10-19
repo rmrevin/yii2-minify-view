@@ -1,4 +1,8 @@
 build:
+    dependencies:
+        before:
+            - composer self-update && composer --version
+            - composer global require "fxp/composer-asset-plugin:1.0.0-beta3"
     environment:
         php:
             version: 5.5.12
