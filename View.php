@@ -138,7 +138,7 @@ class View extends \yii\web\View
         if (!empty($this->cssFiles)) {
             $css_files = array_keys($this->cssFiles);
 
-            $css_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . $this->_getSummaryFilesHash($this->cssFiles) . '.css';
+            $css_minify_file = $this->minify_path . '/' . $this->_getSummaryFilesHash($this->cssFiles) . '.css';
             if (!file_exists($css_minify_file)) {
                 $css = '';
                 $charsets = '';
@@ -160,7 +160,7 @@ class View extends \yii\web\View
                             if (preg_match('#^(' . implode('|', $this->schemas) . ')#is', $url)) {
                                 $result[$m[1][$k]] = '\'' . $url . '\'';
                             } else {
-                                $result[$m[1][$k]] = '\'' . $path . DIRECTORY_SEPARATOR . $url . '\'';
+                                $result[$m[1][$k]] = '\'' . $path . '/' . $url . '\'';
                             }
                         }
                         $content = str_replace(array_keys($result), array_values($result), $content);
@@ -238,7 +238,7 @@ class View extends \yii\web\View
                 } else {
                     $this->jsFiles[$position] = [];
 
-                    $js_minify_file = $this->minify_path . DIRECTORY_SEPARATOR . $this->_getSummaryFilesHash($files) . '.js';
+                    $js_minify_file = $this->minify_path . '/' . $this->_getSummaryFilesHash($files) . '.js';
                     if (!file_exists($js_minify_file)) {
                         $js = '';
                         foreach ($files as $file => $html) {
