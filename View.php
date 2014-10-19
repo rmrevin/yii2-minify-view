@@ -28,7 +28,7 @@ class View extends \yii\web\View
     /**
      * @var array positions of js files to be minified
      */
-    public $js_position = [self::POS_END];
+    public $js_position = [self::POS_END, self::POS_HEAD];
 
     /**
      * @var bool|string charset forcibly assign, otherwise will use all of the files found charset
@@ -46,7 +46,7 @@ class View extends \yii\web\View
     public $css_linebreak_pos = 2048;
 
     /**
-     * @var int chmod of minified file
+     * @var int|bool chmod of minified file. If false chmod not set
      */
     public $file_mode = 0664;
 
@@ -54,6 +54,11 @@ class View extends \yii\web\View
      * @var array schemes that will be ignored during normalization url
      */
     public $schemas = ['//', 'http://', 'https://', 'ftp://'];
+
+    /**
+     * @var bool do I need to compress the result html page.
+     */
+    public $compress_output = false;
 
     /**
      * @throws \rmrevin\yii\minify\Exception
@@ -73,6 +78,16 @@ class View extends \yii\web\View
 
         if (!is_writable($minify_path)) {
             throw new Exception('Directory for compressed assets is not writable.');
+        }
+
+        if (true === $this->compress_output) {
+            \Yii::$app->response->on(\yii\web\Response::EVENT_BEFORE_SEND, function (\yii\base\Event $Event) {
+                /** @var \yii\web\Response $Response */
+                $Response = $Event->sender;
+                if ($Response->format === \yii\web\Response::FORMAT_HTML) {
+                    $Response->data = HtmlCompressor::compress($Response->data, ['extra' => true]);
+                }
+            });
         }
     }
 
@@ -141,9 +156,6 @@ class View extends \yii\web\View
             $css_minify_file = $this->minify_path . '/' . $this->_getSummaryFilesHash($this->cssFiles) . '.css';
             if (!file_exists($css_minify_file)) {
                 $css = '';
-                $charsets = '';
-                $imports = '';
-                $fonts = '';
 
                 foreach ($css_files as $file) {
                     $content = file_get_contents(\Yii::getAlias($this->base_path) . $file);
@@ -169,50 +181,24 @@ class View extends \yii\web\View
                     $css .= $content;
                 }
 
-                if (true === $this->expand_imports) {
-                    preg_match_all('|\@import\s([^;]+);|is', $css, $m);
-                    if (!empty($m[0])) {
-                        foreach ($m[0] as $k => $v) {
-                            $import_url = $m[1][$k];
-                            if (!empty($import_url)) {
-                                $import_content = $this->getImportContent($import_url);
-                                if (!empty($import_content)) {
-                                    $css = str_replace($m[0][$k], $import_content, $css);
-                                }
-                            }
-                        }
-                    }
-                }
+                $this->expandImports($css);
 
-                $css = (new \CSSmin())->run($css, $this->css_linebreak_pos);
+                $css = (new \CSSmin())
+                    ->run($css, $this->css_linebreak_pos);
 
                 if (false !== $this->force_charset) {
-                    $charsets = '@charset "' . (string)$this->force_charset . '";' . PHP_EOL;
+                    $charsets = '@charset "' . (string)$this->force_charset . '";' . "\n";
+                } else {
+                    $charsets = $this->collectCharsets($css);
                 }
 
-                foreach ($this->getAllCharsets($css) as $string) {
-                    $string = $string . ';';
-                    $css = str_replace($string, '', $css);
-                    if (false === $this->force_charset) {
-                        $charsets .= $string . PHP_EOL;
-                    }
+                $imports = $this->collectImports($css);
+                $fonts = $this->collectFonts($css);
+
+                file_put_contents($css_minify_file, $charsets . $imports . $fonts . $css);
+                if (false !== $this->file_mode) {
+                    chmod($css_minify_file, $this->file_mode);
                 }
-
-                foreach ($this->getAllImports($css) as $string) {
-                    $string = $string . ';';
-                    $imports .= $string . PHP_EOL;
-                    $css = str_replace($string, '', $css);
-                }
-
-                foreach ($this->getAllFontFace($css) as $string) {
-                    $fonts .= $string . PHP_EOL;
-                    $css = str_replace($string, '', $css);
-                }
-
-                $css = $charsets . $imports . $fonts . $css;
-
-                file_put_contents($css_minify_file, $css);
-                chmod($css_minify_file, $this->file_mode);
             }
 
             $css_file = str_replace(\Yii::getAlias($this->base_path), '', $css_minify_file);
@@ -220,6 +206,67 @@ class View extends \yii\web\View
         }
 
         return $this;
+    }
+
+    /**
+     * @param string $css
+     */
+    private function expandImports(&$css)
+    {
+        if (true === $this->expand_imports) {
+            preg_match_all('|\@import\s([^;]+);|is', $css, $m);
+            if (!empty($m[0])) {
+                foreach ($m[0] as $k => $v) {
+                    $import_url = $m[1][$k];
+                    if (!empty($import_url)) {
+                        $import_content = $this->getImportContent($import_url);
+                        if (!empty($import_content)) {
+                            $css = str_replace($m[0][$k], $import_content, $css);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private function collectCharsets(&$css)
+    {
+        $charsets = '';
+
+        foreach ($this->_getAllPattern('|\@charset[^;]+|is', $css) as $string) {
+            $string = $string . ';';
+            $css = str_replace($string, '', $css);
+            if (false === $this->force_charset) {
+                $charsets .= $string . PHP_EOL;
+            }
+        }
+
+        return $charsets;
+    }
+
+    private function collectImports(&$css)
+    {
+        $imports = '';
+
+        foreach ($this->_getAllPattern('|\@import[^;]+|is', $css) as $string) {
+            $string = $string . ';';
+            $imports .= $string . PHP_EOL;
+            $css = str_replace($string, '', $css);
+        }
+
+        return $imports;
+    }
+
+    private function collectFonts(&$css)
+    {
+        $fonts = '';
+
+        foreach ($this->_getAllPattern('|\@font-face\{[^}]+\}|is', $css) as $string) {
+            $fonts .= $string . PHP_EOL;
+            $css = str_replace($string, '', $css);
+        }
+
+        return $fonts;
     }
 
     /**
@@ -246,10 +293,13 @@ class View extends \yii\web\View
                             $js .= file_get_contents($file) . ';' . PHP_EOL;
                         }
 
-                        $js = (new \JSMin($js))->min();
+                        $js = (new \JSMin($js))
+                            ->min();
 
                         file_put_contents($js_minify_file, $js);
-                        chmod($js_minify_file, $this->file_mode);
+                        if (false !== $this->file_mode) {
+                            chmod($js_minify_file, $this->file_mode);
+                        }
                     }
 
                     $js_file = str_replace(\Yii::getAlias($this->base_path), '', $js_minify_file);
@@ -262,33 +312,6 @@ class View extends \yii\web\View
     }
 
     /**
-     * @param string $css
-     * @return array
-     */
-    private function getAllCharsets($css)
-    {
-        return $this->_getAllPattern($css, '|\@charset[^;]+|is');
-    }
-
-    /**
-     * @param string $css
-     * @return array
-     */
-    private function getAllImports($css)
-    {
-        return $this->_getAllPattern($css, '|\@import[^;]+|is');
-    }
-
-    /**
-     * @param string $css
-     * @return array
-     */
-    private function getAllFontFace($css)
-    {
-        return $this->_getAllPattern($css, '|\@font-face\{[^}]+\}|is');
-    }
-
-    /**
      * @param string $url
      * @return null|string
      */
@@ -297,7 +320,7 @@ class View extends \yii\web\View
         $result = null;
 
         if ('url(' === helpers\StringHelper::byteSubstr($url, 0, 4)) {
-            $url = str_replace(['url(\'', 'url(', '\')', ')'], '', $url);
+            $url = str_replace(['url(\'', 'url("', 'url(', '\')', '")', ')'], '', $url);
 
             if (helpers\StringHelper::byteSubstr($url, 0, 2) === '//') {
                 $url = preg_replace('|^//|', 'http://', $url, 1);
@@ -312,11 +335,11 @@ class View extends \yii\web\View
     }
 
     /**
-     * @param string $css
      * @param string $pattern
+     * @param string $css
      * @return array
      */
-    private function _getAllPattern($css, $pattern)
+    private function _getAllPattern($pattern, $css)
     {
         preg_match_all($pattern, $css, $m);
 
