@@ -9,6 +9,10 @@ namespace rmrevin\yii\minify\tests\unit\view;
 use rmrevin\yii\minify;
 use yii\helpers\FileHelper;
 
+/**
+ * Class ViewTest
+ * @package rmrevin\yii\minify\tests\unit\view
+ */
 class ViewTest extends minify\tests\unit\TestCase
 {
 

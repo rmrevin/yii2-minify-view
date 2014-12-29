@@ -9,6 +9,10 @@ namespace rmrevin\yii\minify\tests\unit\view;
 use rmrevin\yii\minify\HtmlCompressor;
 use rmrevin\yii\minify\tests\unit\TestCase;
 
+/**
+ * Class HtmlCompressorTest
+ * @package rmrevin\yii\minify\tests\unit\view
+ */
 class HtmlCompressorTest extends TestCase
 {
 

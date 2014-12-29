@@ -15,49 +15,34 @@ use yii\helpers;
 class View extends \yii\web\View
 {
 
-    /**
-     * @var string path alias to web base
-     */
+    /** @var bool */
+    public $enableMinify = true;
+
+    /** @var string path alias to web base */
     public $base_path = '@app/web';
 
-    /**
-     * @var string path alias to save minify result
-     */
+    /** @var string path alias to save minify result */
     public $minify_path = '@app/web/minify';
 
-    /**
-     * @var array positions of js files to be minified
-     */
+    /** @var array positions of js files to be minified */
     public $js_position = [self::POS_END, self::POS_HEAD];
 
-    /**
-     * @var bool|string charset forcibly assign, otherwise will use all of the files found charset
-     */
+    /** @var bool|string charset forcibly assign, otherwise will use all of the files found charset */
     public $force_charset = false;
 
-    /**
-     * @var bool whether to change @import on content
-     */
+    /** @var bool whether to change @import on content */
     public $expand_imports = true;
 
-    /**
-     * @var int
-     */
+    /** @var int */
     public $css_linebreak_pos = 2048;
 
-    /**
-     * @var int|bool chmod of minified file. If false chmod not set
-     */
+    /** @var int|bool chmod of minified file. If false chmod not set */
     public $file_mode = 0664;
 
-    /**
-     * @var array schemes that will be ignored during normalization url
-     */
+    /** @var array schemes that will be ignored during normalization url */
     public $schemas = ['//', 'http://', 'https://', 'ftp://'];
 
-    /**
-     * @var bool do I need to compress the result html page.
-     */
+    /** @var bool do I need to compress the result html page. */
     public $compress_output = false;
 
     /**
@@ -103,7 +88,11 @@ class View extends \yii\web\View
             $this->registerAssetFiles($bundle);
         }
 
-        $this->minify();
+        if (true === $this->enableMinify) {
+            $this
+                ->minifyCSS()
+                ->minifyJS();
+        }
 
         echo strtr(
             $content,
@@ -115,34 +104,6 @@ class View extends \yii\web\View
         );
 
         $this->clear();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected function registerAssetFiles($name)
-    {
-        if (!isset($this->assetBundles[$name])) {
-            return;
-        }
-
-        $bundle = $this->assetBundles[$name];
-        if ($bundle) {
-            foreach ($bundle->depends as $dep) {
-                $this->registerAssetFiles($dep);
-            }
-
-            $bundle->registerAssetFiles($this);
-        }
-
-        unset($this->assetBundles[$name]);
-    }
-
-    private function minify()
-    {
-        $this
-            ->minifyCSS()
-            ->minifyJS();
     }
 
     /**
@@ -229,6 +190,10 @@ class View extends \yii\web\View
         }
     }
 
+    /**
+     * @param string $css
+     * @return string
+     */
     private function collectCharsets(&$css)
     {
         $charsets = '';
@@ -244,6 +209,10 @@ class View extends \yii\web\View
         return $charsets;
     }
 
+    /**
+     * @param string $css
+     * @return string
+     */
     private function collectImports(&$css)
     {
         $imports = '';
@@ -257,6 +226,10 @@ class View extends \yii\web\View
         return $imports;
     }
 
+    /**
+     * @param string $css
+     * @return string
+     */
     private function collectFonts(&$css)
     {
         $fonts = '';
