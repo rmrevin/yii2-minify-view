@@ -64,7 +64,7 @@ class HtmlCompressor
      * THE SOFTWARE.
      *
      * @param $data
-     * @param null $options
+     * @param null|array $options
      * @return bool|mixed|string
      */
     private function html_compress($data, $options = null)

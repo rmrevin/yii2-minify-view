@@ -192,21 +192,34 @@ class View extends \yii\web\View
 
     /**
      * @param string $css
+     * @param string $pattern
+     * @param callable $handler
+     * @return string
+     */
+    private function _collect(&$css, $pattern, $handler)
+    {
+        $result = '';
+
+        preg_match_all($pattern, $css, $m);
+        foreach ($m[0] as $string) {
+            $string = $handler($string);
+            $css = str_replace($string, '', $css);
+
+            $result .= $string . PHP_EOL;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string $css
      * @return string
      */
     private function collectCharsets(&$css)
     {
-        $charsets = '';
-
-        foreach ($this->_getAllPattern('|\@charset[^;]+|is', $css) as $string) {
-            $string = $string . ';';
-            $css = str_replace($string, '', $css);
-            if (false === $this->force_charset) {
-                $charsets .= $string . PHP_EOL;
-            }
-        }
-
-        return $charsets;
+        return $this->_collect($css, '|\@charset[^;]+|is', function ($string) {
+            return $string . ';';
+        });
     }
 
     /**
@@ -215,15 +228,9 @@ class View extends \yii\web\View
      */
     private function collectImports(&$css)
     {
-        $imports = '';
-
-        foreach ($this->_getAllPattern('|\@import[^;]+|is', $css) as $string) {
-            $string = $string . ';';
-            $imports .= $string . PHP_EOL;
-            $css = str_replace($string, '', $css);
-        }
-
-        return $imports;
+        return $this->_collect($css, '|\@import[^;]+|is', function ($string) {
+            return $string . ';';
+        });
     }
 
     /**
@@ -232,14 +239,9 @@ class View extends \yii\web\View
      */
     private function collectFonts(&$css)
     {
-        $fonts = '';
-
-        foreach ($this->_getAllPattern('|\@font-face\{[^}]+\}|is', $css) as $string) {
-            $fonts .= $string . PHP_EOL;
-            $css = str_replace($string, '', $css);
-        }
-
-        return $fonts;
+        return $this->_collect($css, '|\@font-face\{[^}]+\}|is', function ($string) {
+            return $string;
+        });
     }
 
     /**
@@ -305,18 +307,6 @@ class View extends \yii\web\View
         }
 
         return $result;
-    }
-
-    /**
-     * @param string $pattern
-     * @param string $css
-     * @return array
-     */
-    private function _getAllPattern($pattern, $css)
-    {
-        preg_match_all($pattern, $css, $m);
-
-        return $m[0];
     }
 
     /**
