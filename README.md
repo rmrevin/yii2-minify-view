@@ -18,7 +18,7 @@ Add in `composer.json`:
 ```
 {
     "require": {
-        "rmrevin/yii2-minify-view": "1.5.3"
+        "rmrevin/yii2-minify-view": "1.6.1"
     }
 }
 ```
@@ -33,6 +33,7 @@ return [
 		// ...
 		'view' => [
 			'class' => '\rmrevin\yii\minify\View',
+			'enableMinify' => !YII_DEBUG,
 			'base_path' => '@app/web', // path alias to web base
 			'minify_path' => '@app/web/minify', // path alias to save minify result
 			'js_position' => [ \yii\web\View::POS_END ], // positions of js files to be minified
