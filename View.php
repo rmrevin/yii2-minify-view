@@ -175,7 +175,7 @@ class View extends \yii\web\View
     private function expandImports(&$css)
     {
         if (true === $this->expand_imports) {
-            preg_match_all('|\@import\s([^;]+);|is', $css, $m);
+            preg_match_all('|\@import\s([^;]+);|is', str_replace('&amp;', '&', $css), $m);
             if (!empty($m[0])) {
                 foreach ($m[0] as $k => $v) {
                     $import_url = $m[1][$k];
