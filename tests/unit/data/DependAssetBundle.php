@@ -15,7 +15,6 @@ class DependAssetBundle extends \yii\web\AssetBundle
 
     public $js = [
         'depend.js',
-        '//code.jquery.com/jquery-1.11.2.min.js',
     ];
 
     public $css = [
