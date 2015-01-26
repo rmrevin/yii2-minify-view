@@ -130,7 +130,7 @@ class View extends \yii\web\View
                                 continue;
                             }
                             $url = str_replace(['\'', '"'], '', $m[1][$k]);
-                            if (preg_match('#^(' . implode('|', $this->schemas) . ')#is', $url)) {
+                            if ($this->isUrl($url)) {
                                 $result[$m[1][$k]] = '\'' . $url . '\'';
                             } else {
                                 $result[$m[1][$k]] = '\'' . $path . '/' . $url . '\'';
@@ -260,12 +260,20 @@ class View extends \yii\web\View
                 } else {
                     $this->jsFiles[$position] = [];
 
+                    foreach ($files as $file => $html) {
+                        if ($this->isUrl($file)) {
+                            $this->jsFiles[$position][$file] = helpers\Html::jsFile($file);
+                        }
+                    }
+
                     $js_minify_file = $this->minify_path . '/' . $this->_getSummaryFilesHash($files) . '.js';
                     if (!file_exists($js_minify_file)) {
                         $js = '';
                         foreach ($files as $file => $html) {
-                            $file = \Yii::getAlias($this->base_path) . $file;
-                            $js .= file_get_contents($file) . ';' . PHP_EOL;
+                            if (!$this->isUrl($file)) {
+                                $file = \Yii::getAlias($this->base_path) . $file;
+                                $js .= file_get_contents($file) . ';' . PHP_EOL;
+                            }
                         }
 
                         $js = (new \JSMin($js))
@@ -317,9 +325,20 @@ class View extends \yii\web\View
     {
         $result = '';
         foreach ($files as $file => $html) {
-            $result .= sha1_file(\Yii::getAlias($this->base_path) . $file);
+            if (!$this->isUrl($file)) {
+                $result .= sha1_file(\Yii::getAlias($this->base_path) . $file);
+            }
         }
 
         return sha1($result);
+    }
+
+    /**
+     * @param string $url
+     * @return bool
+     */
+    private function isUrl($url)
+    {
+        return (bool)preg_match('#^(' . implode('|', $this->schemas) . ')#is', $url);
     }
 }

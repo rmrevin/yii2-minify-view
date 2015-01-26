@@ -6,9 +6,11 @@
 
 namespace rmrevin\yii\minify\tests\unit\data;
 
-use yii\web\AssetBundle;
-
-class TestAssetBundle extends AssetBundle
+/**
+ * Class TestAssetBundle
+ * @package rmrevin\yii\minify\tests\unit\data
+ */
+class TestAssetBundle extends \yii\web\AssetBundle
 {
 
     public $js = [

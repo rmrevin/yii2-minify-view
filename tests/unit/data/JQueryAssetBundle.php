@@ -1,33 +1,25 @@
 <?php
 /**
- * DependAssetBundle.php
+ * JQueryAssetBundle.php
  * @author Revin Roman http://phptime.ru
  */
 
 namespace rmrevin\yii\minify\tests\unit\data;
 
 /**
- * Class DependAssetBundle
+ * Class JQueryAssetBundle
  * @package rmrevin\yii\minify\tests\unit\data
  */
-class DependAssetBundle extends \yii\web\AssetBundle
+class JQueryAssetBundle extends \yii\web\AssetBundle
 {
 
     public $js = [
-        'depend.js',
         '//code.jquery.com/jquery-1.11.2.min.js',
     ];
 
-    public $css = [
-        'depend.css'
-    ];
 
     public $jsOptions = [
         'position' => \rmrevin\yii\minify\View::POS_HEAD
-    ];
-
-    public $depends = [
-        'rmrevin\yii\minify\tests\unit\data\JQueryAssetBundle'
     ];
 
     public function init()
