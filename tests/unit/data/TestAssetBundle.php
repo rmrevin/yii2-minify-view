@@ -21,6 +21,10 @@ class TestAssetBundle extends \yii\web\AssetBundle
         'test.css'
     ];
 
+    public $jsOptions = [
+        'position' => \rmrevin\yii\minify\View::POS_READY,
+    ];
+
     public $depends = [
         'rmrevin\yii\minify\tests\unit\data\DependAssetBundle'
     ];

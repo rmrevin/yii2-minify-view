@@ -32,7 +32,7 @@ class ViewTest extends minify\tests\unit\TestCase
         $this->getView()->endPage(false);
 
         $files = FileHelper::findFiles($this->getView()->minify_path);
-        $this->assertEquals(3, count($files));
+        $this->assertEquals(2, count($files));
 
         foreach ($files as $file) {
             $this->assertNotEmpty(file_get_contents($file));

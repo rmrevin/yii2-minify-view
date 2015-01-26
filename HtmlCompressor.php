@@ -34,8 +34,9 @@ class HtmlCompressor
 
 
     /**
-     * HTML Compressor 1.0.0
+     * HTML Compressor 1.0.1
      * Original Author: Tyler Hall <tylerhall@gmail.com>
+     * Edited by: Revin Roman <xgismox@gmail.com>
      * Latest Source and Bug Tracker: http://github.com/tylerhall/html-compressor
      *
      * Attemps to reduce the filesize of an HTML document by removing unnecessary
@@ -108,7 +109,9 @@ class HtmlCompressor
             }
 
             // Filter out any blank lines that aren't inside a <pre> block...
-            if ($inside_pre || $line != '') {
+            if ($inside_pre) {
+                $out .= $line;
+            } elseif ($line != '') {
                 $out .= $line . "\n";
             }
         }
