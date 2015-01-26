@@ -18,32 +18,32 @@ class HtmlCompressorTest extends TestCase
 
     public function testMain()
     {
-        $str = '<div class="                   test"                  data>
+        $str = "<div class=\"                   test\"                  data>
             <p>Inside text</p>
             <!-- comment -->
-            <pre>test<span></span></pre>
-        </div>';
+            <pre>    Inside pre\n    <span>test</span></pre>
+        </div>";
 
         $this->assertEquals(
-            "<div class=\" test\" data>\n<p>Inside text</p>\n<!-- comment -->\n<pre>test<span></span></pre>\n</div>",
+            "<div class=\" test\" data>\n<p>Inside text</p>\n<!-- comment -->\n<pre>    Inside pre\n\n    <span>test</span></pre>\n</div>",
             HtmlCompressor::compress($str)
         );
         $this->assertEquals(
-            "<div class=\" test\" data>\n<p>Inside text</p>\n\n<pre>test<span></span></pre>\n</div>",
+            "<div class=\" test\" data>\n<p>Inside text</p>\n\n<pre>    Inside pre\n\n    <span>test</span></pre>\n</div>",
             HtmlCompressor::compress($str, ['no-comments' => true])
         );
         $this->assertEquals(
-            "<div class=\" test\" data><p>Inside text</p><!-- comment --><pre>test<span></span></pre></div>",
+            "<div class=\" test\" data><p>Inside text</p><!-- comment --><pre>    Inside pre\n\n    <span>test</span></pre></div>",
             HtmlCompressor::compress($str, ['extra' => true])
         );
         $this->assertEquals(
-            "<div class=\" test\" data><p>Inside text</p><pre>test<span></span></pre></div>",
+            "<div class=\" test\" data><p>Inside text</p><pre>    Inside pre\n\n    <span>test</span></pre></div>",
             HtmlCompressor::compress($str, ['no-comments' => true, 'extra' => true])
         );
 
-        $this->expectOutputString('Original Size: 176
-Compressed Size: 96
-Savings: 45.45%
+        $this->expectOutputString('Original Size: 195
+Compressed Size: 116
+Savings: 40.51%
 ');
         HtmlCompressor::compress($str, ['stats' => true]);
     }
