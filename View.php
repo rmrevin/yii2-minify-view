@@ -40,7 +40,7 @@ class View extends \yii\web\View
     public $file_mode = 0664;
 
     /** @var array schemes that will be ignored during normalization url */
-    public $schemas = ['/', 'http://', 'https://', 'ftp://'];
+    public $schemas = ['//', 'http://', 'https://', 'ftp://'];
 
     /** @var bool do I need to compress the result html page. */
     public $compress_output = false;
@@ -261,7 +261,7 @@ class View extends \yii\web\View
                     $this->jsFiles[$position] = [];
 
                     foreach ($files as $file => $html) {
-                        if ($this->isUrl($file)) {
+                        if ($this->isUrl($file, false)) {
                             $this->jsFiles[$position][$file] = helpers\Html::jsFile($file);
                         }
                     }
@@ -270,7 +270,7 @@ class View extends \yii\web\View
                     if (!file_exists($js_minify_file)) {
                         $js = '';
                         foreach ($files as $file => $html) {
-                            if (!$this->isUrl($file)) {
+                            if (!$this->isUrl($file, false)) {
                                 $file = \Yii::getAlias($this->base_path) . $file;
                                 $js .= file_get_contents($file) . ';' . PHP_EOL;
                             }
@@ -286,6 +286,7 @@ class View extends \yii\web\View
                     }
 
                     $js_file = str_replace(\Yii::getAlias($this->base_path), '', $js_minify_file);
+                    $this->jsFiles[$position] = [];
                     $this->jsFiles[$position][$js_file] = helpers\Html::jsFile($js_file);
                 }
             }
@@ -335,10 +336,16 @@ class View extends \yii\web\View
 
     /**
      * @param string $url
+     * @param boolean $checkSlash
      * @return bool
      */
-    private function isUrl($url)
+    private function isUrl($url, $checkSlash = true)
     {
-        return (bool)preg_match('#^(' . implode('|', $this->schemas) . ')#is', $url);
+        $regexp = '#^(' . implode('|', $this->schemas) . ')#is';
+        if ($checkSlash) {
+            $regexp = '#^(/|\\\\|' . implode('|', $this->schemas) . ')#is';
+        }
+
+        return (bool)preg_match($regexp, $url);
     }
 }
