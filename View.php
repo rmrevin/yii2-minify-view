@@ -40,7 +40,7 @@ class View extends \yii\web\View
     public $file_mode = 0664;
 
     /** @var array schemes that will be ignored during normalization url */
-    public $schemas = ['//', 'http://', 'https://', 'ftp://'];
+    public $schemas = ['/', 'http://', 'https://', 'ftp://'];
 
     /** @var bool do I need to compress the result html page. */
     public $compress_output = false;
