@@ -114,32 +114,43 @@ class View extends \yii\web\View
         if (!empty($this->cssFiles)) {
             $css_files = array_keys($this->cssFiles);
 
+            $this->cssFiles = [];
+
+            foreach ($css_files as $file) {
+                if ($this->isUrl($file, false)) {
+                    $this->cssFiles[$file] = helpers\Html::cssFile($file);
+                }
+            }
+
             $css_minify_file = $this->minify_path . '/' . $this->_getSummaryFilesHash($this->cssFiles) . '.css';
             if (!file_exists($css_minify_file)) {
                 $css = '';
 
                 foreach ($css_files as $file) {
-                    $content = file_get_contents(\Yii::getAlias($this->base_path) . $file);
+                    if (!$this->isUrl($file, false)) {
+                        $content = file_get_contents(\Yii::getAlias($this->base_path) . $file);
 
-                    preg_match_all('|url\(([^)]+)\)|is', $content, $m);
-                    if (!empty($m[0])) {
-                        $path = dirname($file);
-                        $result = [];
-                        foreach ($m[0] as $k => $v) {
-                            if (0 === strpos($m[1][$k], 'data:')) {
-                                continue;
+                        preg_match_all('|url\(([^)]+)\)|is', $content, $m);
+                        if (!empty($m[0])) {
+                            $path = dirname($file);
+                            $result = [];
+                            foreach ($m[0] as $k => $v) {
+                                if (0 === strpos($m[1][$k], 'data:')) {
+                                    continue;
+                                }
+                                $url = str_replace(['\'', '"'], '', $m[1][$k]);
+                                if ($this->isUrl($url)) {
+                                    $result[$m[1][$k]] = '\'' . $url . '\'';
+                                } else {
+                                    $result[$m[1][$k]] = '\'' . $path . '/' . $url . '\'';
+                                }
                             }
-                            $url = str_replace(['\'', '"'], '', $m[1][$k]);
-                            if ($this->isUrl($url)) {
-                                $result[$m[1][$k]] = '\'' . $url . '\'';
-                            } else {
-                                $result[$m[1][$k]] = '\'' . $path . '/' . $url . '\'';
-                            }
+
+                            $content = str_replace(array_keys($result), array_values($result), $content);
                         }
-                        $content = str_replace(array_keys($result), array_values($result), $content);
-                    }
 
-                    $css .= $content;
+                        $css .= $content;
+                    }
                 }
 
                 $this->expandImports($css);
@@ -163,7 +174,7 @@ class View extends \yii\web\View
             }
 
             $css_file = str_replace(\Yii::getAlias($this->base_path), '', $css_minify_file);
-            $this->cssFiles = [$css_file => helpers\Html::cssFile($css_file)];
+            $this->cssFiles[$css_file] = helpers\Html::cssFile($css_file);
         }
 
         return $this;
