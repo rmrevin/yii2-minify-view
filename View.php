@@ -114,6 +114,8 @@ class View extends \yii\web\View
         if (!empty($this->cssFiles)) {
             $css_files = array_keys($this->cssFiles);
 
+            $css_minify_file = $this->minify_path . '/' . $this->_getSummaryFilesHash($this->cssFiles) . '.css';
+
             $this->cssFiles = [];
 
             foreach ($css_files as $file) {
@@ -122,7 +124,6 @@ class View extends \yii\web\View
                 }
             }
 
-            $css_minify_file = $this->minify_path . '/' . $this->_getSummaryFilesHash($this->cssFiles) . '.css';
             if (!file_exists($css_minify_file)) {
                 $css = '';
 
@@ -145,7 +146,6 @@ class View extends \yii\web\View
                                     $result[$m[1][$k]] = '\'' . $path . '/' . $url . '\'';
                                 }
                             }
-
                             $content = str_replace(array_keys($result), array_values($result), $content);
                         }
 
@@ -337,7 +337,7 @@ class View extends \yii\web\View
     {
         $result = '';
         foreach ($files as $file => $html) {
-            if (!$this->isUrl($file)) {
+            if (!$this->isUrl($file, false)) {
                 $result .= sha1_file(\Yii::getAlias($this->base_path) . $file);
             }
         }
