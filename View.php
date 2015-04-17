@@ -337,8 +337,10 @@ class View extends \yii\web\View
     {
         $result = '';
         foreach ($files as $file => $html) {
-            if (!$this->isUrl($file, false)) {
-                $result .= sha1_file(\Yii::getAlias($this->base_path) . $file);
+            $path = \Yii::getAlias($this->base_path) . $file;
+
+            if (!$this->isUrl($file, false) && file_exists($path)) {
+                $result .= sha1_file($path);
             }
         }
 
