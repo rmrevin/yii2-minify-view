@@ -14,6 +14,7 @@ return [
             'class' => 'rmrevin\yii\minify\View',
             'minify_path' => BASE_PATH . '/runtime/minyfy',
             'base_path' => BASE_PATH . '/runtime',
+            'web_path' => '/runtime',
             'force_charset' => 'CP1251',
         ],
         'assetManager' => [
