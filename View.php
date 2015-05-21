@@ -18,10 +18,10 @@ class View extends \yii\web\View
     /** @var bool */
     public $enableMinify = true;
 
-    /** @var string path alias to web base url */
+    /** @var string path alias to web base (in url) */
     public $web_path = '@web';
 
-    /** @var string absolute path alias to web base */
+    /** @var string path alias to web base (absolute) */
     public $base_path = '@webroot';
 
     /** @var string path alias to save minify result */
