@@ -18,11 +18,14 @@ class View extends \yii\web\View
     /** @var bool */
     public $enableMinify = true;
 
-    /** @var string path alias to web base */
-    public $base_path = '@app/web';
+    /** @var string path alias to web base url */
+    public $web_path = '@web';
+
+    /** @var string absolute path alias to web base */
+    public $base_path = '@webroot';
 
     /** @var string path alias to save minify result */
-    public $minify_path = '@app/web/minify';
+    public $minify_path = '@webroot/minify';
 
     /** @var array positions of js files to be minified */
     public $js_position = [self::POS_END, self::POS_HEAD];
@@ -129,6 +132,8 @@ class View extends \yii\web\View
 
                 foreach ($css_files as $file) {
                     if (!$this->isUrl($file, false)) {
+                        $file = str_replace(\Yii::getAlias($this->web_path), '', $file);
+
                         $content = file_get_contents(\Yii::getAlias($this->base_path) . $file);
 
                         preg_match_all('|url\(([^)]+)\)|is', $content, $m);
@@ -143,7 +148,7 @@ class View extends \yii\web\View
                                 if ($this->isUrl($url)) {
                                     $result[$m[1][$k]] = '\'' . $url . '\'';
                                 } else {
-                                    $result[$m[1][$k]] = '\'' . $path . '/' . $url . '\'';
+                                    $result[$m[1][$k]] = '\'' . \Yii::getAlias($this->web_path) . $path . '/' . $url . '\'';
                                 }
                             }
                             $content = str_replace(array_keys($result), array_values($result), $content);
@@ -173,7 +178,7 @@ class View extends \yii\web\View
                 }
             }
 
-            $css_file = str_replace(\Yii::getAlias($this->base_path), '', $css_minify_file);
+            $css_file = \Yii::getAlias($this->web_path) . str_replace(\Yii::getAlias($this->base_path), '', $css_minify_file);
             $this->cssFiles[$css_file] = helpers\Html::cssFile($css_file);
         }
 
@@ -282,7 +287,7 @@ class View extends \yii\web\View
                         $js = '';
                         foreach ($files as $file => $html) {
                             if (!$this->isUrl($file, false)) {
-                                $file = \Yii::getAlias($this->base_path) . $file;
+                                $file = \Yii::getAlias($this->base_path) . str_replace(\Yii::getAlias($this->web_path), '', $file);
                                 $js .= file_get_contents($file) . ';' . PHP_EOL;
                             }
                         }
@@ -296,7 +301,7 @@ class View extends \yii\web\View
                         }
                     }
 
-                    $js_file = str_replace(\Yii::getAlias($this->base_path), '', $js_minify_file);
+                    $js_file = \Yii::getAlias($this->web_path) . str_replace(\Yii::getAlias($this->base_path), '', $js_minify_file);
                     $this->jsFiles[$position] = [];
                     $this->jsFiles[$position][$js_file] = helpers\Html::jsFile($js_file);
                 }
