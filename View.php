@@ -73,7 +73,13 @@ class View extends \yii\web\View
                 /** @var \yii\web\Response $Response */
                 $Response = $Event->sender;
                 if ($Response->format === \yii\web\Response::FORMAT_HTML) {
-                    $Response->data = HtmlCompressor::compress($Response->data, ['extra' => true]);
+                    if (!empty($Response->data)) {
+                        $Response->data = HtmlCompressor::compress($Response->data, ['extra' => true]);
+                    }
+
+                    if (!empty($Response->content)) {
+                        $Response->content = HtmlCompressor::compress($Response->content, ['extra' => true]);
+                    }
                 }
             });
         }
