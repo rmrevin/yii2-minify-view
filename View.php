@@ -284,7 +284,7 @@ class View extends \yii\web\View
 
                     foreach ($files as $file => $html) {
                         if ($this->isUrl($file, false)) {
-                            $this->jsFiles[$position][$file] = helpers\Html::jsFile($file);
+                            $this->jsFiles[$position][$file] = $html;
                         }
                     }
 
@@ -308,7 +308,6 @@ class View extends \yii\web\View
                     }
 
                     $js_file = \Yii::getAlias($this->web_path) . str_replace(\Yii::getAlias($this->base_path), '', $js_minify_file);
-                    $this->jsFiles[$position] = [];
                     $this->jsFiles[$position][$js_file] = helpers\Html::jsFile($js_file);
                 }
             }
