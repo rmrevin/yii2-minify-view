@@ -18,6 +18,12 @@ class View extends \yii\web\View
     /** @var bool */
     public $enableMinify = true;
 
+    /** @var bool */
+    public $minifyCss = true;
+
+    /** @var bool */
+    public $minifyJs = true;
+
     /** @var string path alias to web base (in url) */
     public $web_path = '@web';
 
@@ -98,9 +104,13 @@ class View extends \yii\web\View
         }
 
         if (true === $this->enableMinify) {
-            $this
-                ->minifyCSS()
-                ->minifyJS();
+            if (true === $this->minifyCss) {
+                $this->minifyCSS();
+            }
+
+            if (true === $this->minifyJs) {
+                $this->minifyJS();
+            }
         }
 
         echo strtr(
