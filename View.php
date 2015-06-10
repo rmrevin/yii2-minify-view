@@ -157,7 +157,7 @@ class View extends \yii\web\View
                             $path = dirname($file);
                             $result = [];
                             foreach ($m[0] as $k => $v) {
-                                if (1 === strpos($m[1][$k], 'data:')) {
+                                if (in_array(strpos($m[1][$k], 'data:'), [0, 1], true)) {
                                     continue;
                                 }
                                 $url = str_replace(['\'', '"'], '', $m[1][$k]);
