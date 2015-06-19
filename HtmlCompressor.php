@@ -93,20 +93,12 @@ class HtmlCompressor
                 } else {
                     // Only trim the beginning since we just entered a <pre> block...
                     $line = ltrim($line);
-                    $inside_pre = true;
 
                     // If the <pre> ends on the same line, don't turn on $inside_pre...
-                    if ((strpos($line, '</pre') !== false) && (strripos($line, '</pre') >= strripos($line, '<pre'))) {
-                        $line = rtrim($line);
-                        $inside_pre = false;
-                    }
+                    list($line, $inside_pre) = $this->checkInsidePre($line);
                 }
             } else {
-                if ((strpos($line, '</pre') !== false) && (strripos($line, '</pre') >= strripos($line, '<pre'))) {
-                    // Trim the end of the line now that we found the end of the <pre> block...
-                    $line = rtrim($line);
-                    $inside_pre = false;
-                }
+                list($line, $inside_pre) = $this->checkInsidePre($line);
             }
 
             // Filter out any blank lines that aren't inside a <pre> block...
@@ -144,6 +136,22 @@ class HtmlCompressor
         }
 
         return false;
+    }
+
+    /**
+     * @param $line
+     * @return array
+     */
+    private function checkInsidePre($line)
+    {
+        $inside_pre = true;
+
+        if ((strpos($line, '</pre') !== false) && (strripos($line, '</pre') >= strripos($line, '<pre'))) {
+            $line = rtrim($line);
+            $inside_pre = false;
+        }
+
+        return [$line, $inside_pre];
     }
 
     /**
