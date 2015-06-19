@@ -1,7 +1,8 @@
 <?php
 /**
  * Exception.php
- * @author Revin Roman http://phptime.ru
+ * @author Revin Roman
+ * @link https://rmrevin.ru
  */
 
 namespace rmrevin\yii\minify;
@@ -12,4 +13,5 @@ namespace rmrevin\yii\minify;
  */
 class Exception extends \yii\base\Exception
 {
+
 } 

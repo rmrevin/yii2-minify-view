@@ -1,7 +1,8 @@
 <?php
 /**
  * ViewTest.php
- * @author Revin Roman http://phptime.ru
+ * @author Revin Roman
+ * @link https://rmrevin.ru
  */
 
 namespace rmrevin\yii\minify\tests\unit\view;

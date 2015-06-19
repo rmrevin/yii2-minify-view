@@ -1,7 +1,8 @@
 <?php
 /**
  * HtmlCompressor.php
- * @author Revin Roman http://phptime.ru
+ * @author Revin Roman
+ * @link https://rmrevin.ru
  */
 
 namespace rmrevin\yii\minify;
@@ -29,7 +30,7 @@ class HtmlCompressor
     public static function compress($data, $options = null)
     {
         return (new static)
-            ->html_compress($data, $options);
+            ->htmlCompress($data, $options);
     }
 
 
@@ -68,7 +69,7 @@ class HtmlCompressor
      * @param null|array $options
      * @return bool|mixed|string
      */
-    private function html_compress($data, $options = null)
+    private function htmlCompress($data, $options = null)
     {
         if (!isset($options)) {
             $options = [];
@@ -79,7 +80,7 @@ class HtmlCompressor
         $inside_pre = false;
         $bytecount = 0;
 
-        while ($line = $this->get_line($data)) {
+        while ($line = $this->getLine($data)) {
             $bytecount += strlen($line);
 
             if (!$inside_pre) {
@@ -150,7 +151,7 @@ class HtmlCompressor
      * @param $data
      * @return bool|string
      */
-    private function get_line(&$data)
+    private function getLine(&$data)
     {
         if (is_resource($data)) {
             return fgets($data);
@@ -169,5 +170,31 @@ class HtmlCompressor
         }
 
         return false;
+    }
+
+    /**
+     * @param $data
+     * @param null|array $options
+     * @return bool|mixed|string
+     * @deprecated
+     * @codeCoverageIgnore
+     */
+    private function html_compress($data, $options = null)
+    {
+        return $this->htmlCompress($data, $options);
+    }
+
+    /**
+     * Returns the next line from an open file handle or a string
+     * @param $data
+     * @return bool|string
+     * @deprecated
+     * @codeCoverageIgnore
+     */
+    private function get_line(&$data)
+    {
+        \Yii::warning(sprintf('You are using an deprecated method `%s`.', 'get_line'));
+
+        return $this->getLine($data);
     }
 }

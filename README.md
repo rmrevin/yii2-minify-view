@@ -14,17 +14,12 @@ Code Status
 
 Installation
 ------------
-Add in `composer.json`:
-```
-{
-    "require": {
-        "rmrevin/yii2-minify-view": "~1.8"
-    }
-}
+```bash
+composer require "rmrevin/yii2-minify-view:1.8.*"
 ```
 
 Configure
------
+---------
 ```php
 <?
 return [
