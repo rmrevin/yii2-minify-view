@@ -132,123 +132,211 @@ class View extends \yii\web\View
     protected function minifyCSS()
     {
         if (!empty($this->cssFiles)) {
-            $css_files = array_keys($this->cssFiles);
-
-            $css_minify_file = $this->minify_path . '/' . $this->_getSummaryFilesHash($this->cssFiles) . '.css';
+            $cssFiles = $this->cssFiles;
 
             $this->cssFiles = [];
 
-            foreach ($css_files as $file) {
-                if ($this->isUrl($file, false)) {
-                    $this->cssFiles[$file] = helpers\Html::cssFile($file);
-                }
-            }
+            $toMinify = [];
 
-            if (!file_exists($css_minify_file)) {
-                $css = '';
-
-                foreach ($css_files as $file) {
-                    if (!$this->isUrl($file, false)) {
-                        $file = str_replace(\Yii::getAlias($this->web_path), '', $file);
-
-                        $content = file_get_contents(\Yii::getAlias($this->base_path) . $file);
-
-                        preg_match_all('|url\(([^)]+)\)|is', $content, $m);
-                        if (!empty($m[0])) {
-                            $path = dirname($file);
-                            $result = [];
-                            foreach ($m[0] as $k => $v) {
-                                if (in_array(strpos($m[1][$k], 'data:'), [0, 1], true)) {
-                                    continue;
-                                }
-                                $url = str_replace(['\'', '"'], '', $m[1][$k]);
-                                if ($this->isUrl($url)) {
-                                    $result[$m[1][$k]] = '\'' . $url . '\'';
-                                } else {
-                                    $result[$m[1][$k]] = '\'' . \Yii::getAlias($this->web_path) . $path . '/' . $url . '\'';
-                                }
-                            }
-                            $content = str_replace(array_keys($result), array_values($result), $content);
-                        }
-
-                        $css .= $content;
-                    }
-                }
-
-                $this->expandImports($css);
-
-                $css = (new \CSSmin())
-                    ->run($css, $this->css_linebreak_pos);
-
-                if (false !== $this->force_charset) {
-                    $charsets = '@charset "' . (string)$this->force_charset . '";' . "\n";
+            foreach ($cssFiles as $file => $html) {
+                if ($this->thisFileNeedMinify($file, $html)) {
+                    $toMinify[$file] = $html;
                 } else {
-                    $charsets = $this->collectCharsets($css);
-                }
+                    if (!empty($toMinify)) {
+                        $this->processMinifyCss($toMinify);
 
-                $imports = $this->collectImports($css);
-                $fonts = $this->collectFonts($css);
+                        $toMinify = [];
+                    }
 
-                file_put_contents($css_minify_file, $charsets . $imports . $fonts . $css);
-                if (false !== $this->file_mode) {
-                    chmod($css_minify_file, $this->file_mode);
+                    $this->cssFiles[$file] = $html;
                 }
             }
 
-            $css_file = \Yii::getAlias($this->web_path) . str_replace(\Yii::getAlias($this->base_path), '', $css_minify_file);
-            $this->cssFiles[$css_file] = helpers\Html::cssFile($css_file);
+            if (!empty($toMinify)) {
+                $this->processMinifyCss($toMinify);
+            }
+
+            unset($toMinify);
         }
 
         return $this;
     }
 
     /**
-     * @param string $css
+     * @param array $files
      */
-    private function expandImports(&$css)
+    protected function processMinifyCss($files)
     {
-        if (true === $this->expand_imports) {
-            preg_match_all('|\@import\s([^;]+);|is', str_replace('&amp;', '&', $css), $m);
-            if (!empty($m[0])) {
-                foreach ($m[0] as $k => $v) {
-                    $import_url = $m[1][$k];
-                    if (!empty($import_url)) {
-                        $import_content = $this->getImportContent($import_url);
-                        if (!empty($import_content)) {
-                            $css = str_replace($m[0][$k], $import_content, $css);
+        $resultFile = $this->minify_path . '/' . $this->_getSummaryFilesHash($files) . '.css';
+
+        if (!file_exists($resultFile)) {
+            $css = '';
+
+            foreach ($files as $file => $html) {
+                $file = str_replace(\Yii::getAlias($this->web_path), '', $file);
+
+                $content = file_get_contents(\Yii::getAlias($this->base_path) . $file);
+
+                preg_match_all('|url\(([^)]+)\)|is', $content, $m);
+                if (!empty($m[0])) {
+                    $path = dirname($file);
+                    $result = [];
+                    foreach ($m[0] as $k => $v) {
+                        if (in_array(strpos($m[1][$k], 'data:'), [0, 1], true)) {
+                            continue;
+                        }
+                        $url = str_replace(['\'', '"'], '', $m[1][$k]);
+                        if ($this->isUrl($url)) {
+                            $result[$m[1][$k]] = '\'' . $url . '\'';
+                        } else {
+                            $result[$m[1][$k]] = '\'' . \Yii::getAlias($this->web_path) . $path . '/' . $url . '\'';
                         }
                     }
+                    $content = str_replace(array_keys($result), array_values($result), $content);
+                }
+
+                $css .= $content;
+            }
+
+            $this->expandImports($css);
+
+            $css = (new \CSSmin())
+                ->run($css, $this->css_linebreak_pos);
+
+            if (false !== $this->force_charset) {
+                $charsets = '@charset "' . (string)$this->force_charset . '";' . "\n";
+            } else {
+                $charsets = $this->collectCharsets($css);
+            }
+
+            $imports = $this->collectImports($css);
+            $fonts = $this->collectFonts($css);
+
+            file_put_contents($resultFile, $charsets . $imports . $fonts . $css);
+
+            if (false !== $this->file_mode) {
+                @chmod($resultFile, $this->file_mode);
+            }
+        }
+
+        $file = sprintf('%s%s', \Yii::getAlias($this->web_path), str_replace(\Yii::getAlias($this->base_path), '', $resultFile));
+
+        $this->cssFiles[$file] = helpers\Html::cssFile($file);
+    }
+
+    /**
+     * @return self
+     */
+    protected function minifyJS()
+    {
+        if (!empty($this->jsFiles)) {
+            $jsFiles = $this->jsFiles;
+
+            foreach ($jsFiles as $position => $files) {
+                if (false === in_array($position, $this->js_position, true)) {
+                    $this->jsFiles[$position] = [];
+                    foreach ($files as $file => $html) {
+                        $this->jsFiles[$position][$file] = $html;
+                    }
+                } else {
+                    $this->jsFiles[$position] = [];
+
+                    $toMinify = [];
+
+                    foreach ($files as $file => $html) {
+                        if ($this->thisFileNeedMinify($file, $html)) {
+                            $toMinify[$file] = $html;
+                        } else {
+                            if (!empty($toMinify)) {
+                                $this->processMinifyJs($position, $toMinify);
+
+                                $toMinify = [];
+                            }
+
+                            $this->jsFiles[$position][$file] = $html;
+                        }
+                    }
+
+                    if (!empty($toMinify)) {
+                        $this->processMinifyJs($position, $toMinify);
+                    }
+
+                    unset($toMinify);
                 }
             }
         }
+
+        return $this;
     }
 
     /**
-     * @param string $css
-     * @param string $pattern
-     * @param callable $handler
-     * @return string
+     * @param integer $position
+     * @param array $files
      */
-    private function _collect(&$css, $pattern, $handler)
+    protected function processMinifyJs($position, $files)
     {
-        $result = '';
+        $resultFile = sprintf('%s/%s.js', $this->minify_path, $this->_getSummaryFilesHash($files));
+        if (!file_exists($resultFile)) {
+            $js = '';
+            foreach ($files as $file => $html) {
+                $file = \Yii::getAlias($this->base_path) . str_replace(\Yii::getAlias($this->web_path), '', $file);
+                $js .= file_get_contents($file) . ';' . PHP_EOL;
+            }
 
-        preg_match_all($pattern, $css, $m);
-        foreach ($m[0] as $string) {
-            $string = $handler($string);
-            $css = str_replace($string, '', $css);
+            $compressedJs = (new \JSMin($js))
+                ->min();
 
-            $result .= $string . PHP_EOL;
+            file_put_contents($resultFile, $compressedJs);
+
+            if (false !== $this->file_mode) {
+                @chmod($resultFile, $this->file_mode);
+            }
         }
 
-        return $result;
+        $file = sprintf('%s%s', \Yii::getAlias($this->web_path), str_replace(\Yii::getAlias($this->base_path), '', $resultFile));
+
+        $this->jsFiles[$position][$file] = helpers\Html::jsFile($file);
+    }
+
+    /**
+     * @param string $url
+     * @param boolean $checkSlash
+     * @return bool
+     */
+    protected function isUrl($url, $checkSlash = true)
+    {
+        $regexp = '#^(' . implode('|', $this->schemas) . ')#is';
+        if ($checkSlash) {
+            $regexp = '#^(/|\\\\|' . implode('|', $this->schemas) . ')#is';
+        }
+
+        return (bool)preg_match($regexp, $url);
+    }
+
+    /**
+     * @param string $string
+     * @return bool
+     */
+    protected function isContainsConditionalComment($string)
+    {
+        return strpos($string, '<![endif]-->') !== false;
+    }
+
+    /**
+     * @param string $file
+     * @param string $html
+     * @return bool
+     */
+    protected function thisFileNeedMinify($file, $html)
+    {
+        return !$this->isUrl($file, false) && !$this->isContainsConditionalComment($html);
     }
 
     /**
      * @param string $css
      * @return string
      */
-    private function collectCharsets(&$css)
+    protected function collectCharsets(&$css)
     {
         return $this->_collect($css, '|\@charset[^;]+|is', function ($string) {
             return $string . ';';
@@ -259,7 +347,7 @@ class View extends \yii\web\View
      * @param string $css
      * @return string
      */
-    private function collectImports(&$css)
+    protected function collectImports(&$css)
     {
         return $this->_collect($css, '|\@import[^;]+|is', function ($string) {
             return $string . ';';
@@ -270,7 +358,7 @@ class View extends \yii\web\View
      * @param string $css
      * @return string
      */
-    private function collectFonts(&$css)
+    protected function collectFonts(&$css)
     {
         return $this->_collect($css, '|\@font-face\{[^}]+\}|is', function ($string) {
             return $string;
@@ -278,60 +366,31 @@ class View extends \yii\web\View
     }
 
     /**
-     * @return self
+     * @param string $css
      */
-    protected function minifyJS()
+    protected function expandImports(&$css)
     {
-        if (!empty($this->jsFiles)) {
-            $js_files = $this->jsFiles;
-            foreach ($js_files as $position => $files) {
-                if (false === in_array($position, $this->js_position)) {
-                    $this->jsFiles[$position] = [];
-                    foreach ($files as $file => $html) {
-                        $this->jsFiles[$position][$file] = helpers\Html::jsFile($file);
-                    }
-                } else {
-                    $this->jsFiles[$position] = [];
-
-                    foreach ($files as $file => $html) {
-                        if ($this->isUrl($file, false)) {
-                            $this->jsFiles[$position][$file] = $html;
+        if (true === $this->expand_imports) {
+            preg_match_all('|\@import\s([^;]+);|is', str_replace('&amp;', '&', $css), $m);
+            if (!empty($m[0])) {
+                foreach ($m[0] as $k => $v) {
+                    $import_url = $m[1][$k];
+                    if (!empty($import_url)) {
+                        $import_content = $this->_getImportContent($import_url);
+                        if (!empty($import_content)) {
+                            $css = str_replace($m[0][$k], $import_content, $css);
                         }
                     }
-
-                    $js_minify_file = $this->minify_path . '/' . $this->_getSummaryFilesHash($files) . '.js';
-                    if (!file_exists($js_minify_file)) {
-                        $js = '';
-                        foreach ($files as $file => $html) {
-                            if (!$this->isUrl($file, false)) {
-                                $file = \Yii::getAlias($this->base_path) . str_replace(\Yii::getAlias($this->web_path), '', $file);
-                                $js .= file_get_contents($file) . ';' . PHP_EOL;
-                            }
-                        }
-
-                        $js = (new \JSMin($js))
-                            ->min();
-
-                        file_put_contents($js_minify_file, $js);
-                        if (false !== $this->file_mode) {
-                            chmod($js_minify_file, $this->file_mode);
-                        }
-                    }
-
-                    $js_file = \Yii::getAlias($this->web_path) . str_replace(\Yii::getAlias($this->base_path), '', $js_minify_file);
-                    $this->jsFiles[$position][$js_file] = helpers\Html::jsFile($js_file);
                 }
             }
         }
-
-        return $this;
     }
 
     /**
      * @param string $url
      * @return null|string
      */
-    private function getImportContent($url)
+    protected function _getImportContent($url)
     {
         $result = null;
 
@@ -351,35 +410,41 @@ class View extends \yii\web\View
     }
 
     /**
+     * @param string $css
+     * @param string $pattern
+     * @param callable $handler
+     * @return string
+     */
+    protected function _collect(&$css, $pattern, $handler)
+    {
+        $result = '';
+
+        preg_match_all($pattern, $css, $m);
+        foreach ($m[0] as $string) {
+            $string = $handler($string);
+            $css = str_replace($string, '', $css);
+
+            $result .= $string . PHP_EOL;
+        }
+
+        return $result;
+    }
+
+    /**
      * @param array $files
      * @return string
      */
-    private function _getSummaryFilesHash($files)
+    protected function _getSummaryFilesHash($files)
     {
         $result = '';
         foreach ($files as $file => $html) {
             $path = \Yii::getAlias($this->base_path) . $file;
 
-            if (!$this->isUrl($file, false) && file_exists($path)) {
+            if ($this->thisFileNeedMinify($file, $html) && file_exists($path)) {
                 $result .= sha1_file($path);
             }
         }
 
         return sha1($result);
-    }
-
-    /**
-     * @param string $url
-     * @param boolean $checkSlash
-     * @return bool
-     */
-    private function isUrl($url, $checkSlash = true)
-    {
-        $regexp = '#^(' . implode('|', $this->schemas) . ')#is';
-        if ($checkSlash) {
-            $regexp = '#^(/|\\\\|' . implode('|', $this->schemas) . ')#is';
-        }
-
-        return (bool)preg_match($regexp, $url);
     }
 }
