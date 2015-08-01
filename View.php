@@ -23,7 +23,13 @@ class View extends \yii\web\View
     public $minifyCss = true;
 
     /** @var bool */
+    public $compressCss = true;
+
+    /** @var bool */
     public $minifyJs = true;
+
+    /** @var bool */
+    public $compressJs = true;
 
     /** @var string path alias to web base (in url) */
     public $web_path = '@web';
@@ -200,8 +206,10 @@ class View extends \yii\web\View
 
             $this->expandImports($css);
 
-            $css = (new \CSSmin())
-                ->run($css, $this->css_linebreak_pos);
+            if ($this->compressCss) {
+                $css = (new \CSSmin())
+                    ->run($css, $this->css_linebreak_pos);
+            }
 
             if (false !== $this->force_charset) {
                 $charsets = '@charset "' . (string)$this->force_charset . '";' . "\n";
@@ -283,10 +291,12 @@ class View extends \yii\web\View
                 $js .= file_get_contents($file) . ';' . PHP_EOL;
             }
 
-            $compressedJs = (new \JSMin($js))
-                ->min();
+            if ($this->compressJs) {
+                $js = (new \JSMin($js))
+                    ->min();
+            }
 
-            file_put_contents($resultFile, $compressedJs);
+            file_put_contents($resultFile, $js);
 
             if (false !== $this->file_mode) {
                 @chmod($resultFile, $this->file_mode);
