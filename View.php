@@ -61,6 +61,10 @@ class View extends \yii\web\View
     /** @var bool do I need to compress the result html page. */
     public $compress_output = false;
 
+    /** @var string Method of file updated checking: 'sha' - with sha1_file (slower, better for debug with assets force
+     * copy) or 'time' - with filemtime (faster, better for production) */
+    public $hashMethod = 'sha';
+
     /**
      * @throws \rmrevin\yii\minify\Exception
      */
@@ -451,7 +455,11 @@ class View extends \yii\web\View
             $path = \Yii::getAlias($this->base_path) . $file;
 
             if ($this->thisFileNeedMinify($file, $html) && file_exists($path)) {
-                $result .= $path . '?' . filemtime($path);
+                if ($this->hashMethod === 'time') {
+                    $result .= $path . '?' . filemtime($path);
+                } else {
+                    $result .= sha1_file($path);
+                }
             }
         }
 
