@@ -1,12 +1,8 @@
 <?php
-/**
- * View.php
- * @author Revin Roman
- * @link https://rmrevin.ru
- */
 
-namespace rmrevin\yii\minify;
+namespace milano\minify;
 
+use yii\base\Exception;
 use yii\helpers;
 
 /**
@@ -32,47 +28,47 @@ class View extends \yii\web\View
     public $compressJs = true;
 
     /** @var string path alias to web base (in url) */
-    public $web_path = '@web';
+    public $webPath = '@web';
 
     /** @var string path alias to web base (absolute) */
-    public $base_path = '@webroot';
+    public $basePath = '@webroot';
 
     /** @var string path alias to save minify result */
-    public $minify_path = '@webroot/minify';
+    public $minifyPath = '@webroot/minify';
 
     /** @var array positions of js files to be minified */
-    public $js_position = [self::POS_END, self::POS_HEAD];
+    public $jsPosition = [self::POS_END, self::POS_HEAD];
 
     /** @var bool|string charset forcibly assign, otherwise will use all of the files found charset */
-    public $force_charset = false;
+    public $forceCharset = false;
 
     /** @var bool whether to change @import on content */
-    public $expand_imports = true;
+    public $expandImports = true;
 
     /** @var int */
-    public $css_linebreak_pos = 2048;
+    public $cssLinebreakPos = 2048;
 
     /** @var int|bool chmod of minified file. If false chmod not set */
-    public $file_mode = 0664;
+    public $fileMode = 0664;
 
     /** @var array schemes that will be ignored during normalization url */
     public $schemas = ['//', 'http://', 'https://', 'ftp://'];
 
     /** @var bool do I need to compress the result html page. */
-    public $compress_output = false;
+    public $compressOutput = false;
 
     /** @var string Method of file updated checking: 'sha' - with sha1_file (slower, better for debug with assets force
      * copy) or 'time' - with filemtime (faster, better for production) */
     public $hashMethod = 'sha';
 
     /**
-     * @throws \rmrevin\yii\minify\Exception
+     * @throws Exception
      */
     public function init()
     {
         parent::init();
 
-        $minify_path = $this->minify_path = (string)\Yii::getAlias($this->minify_path);
+        $minify_path = $this->minifyPath = (string)\Yii::getAlias($this->minifyPath);
         if (!file_exists($minify_path)) {
             helpers\FileHelper::createDirectory($minify_path);
         }
@@ -85,7 +81,7 @@ class View extends \yii\web\View
             throw new Exception('Directory for compressed assets is not writable.');
         }
 
-        if (true === $this->compress_output) {
+        if (true === $this->compressOutput) {
             \Yii::$app->response->on(\yii\web\Response::EVENT_BEFORE_SEND, function (\yii\base\Event $Event) {
                 /** @var \yii\web\Response $Response */
                 $Response = $Event->sender;
@@ -177,15 +173,15 @@ class View extends \yii\web\View
      */
     protected function processMinifyCss($files)
     {
-        $resultFile = $this->minify_path . '/' . $this->_getSummaryFilesHash($files) . '.css';
+        $resultFile = $this->minifyPath . '/' . $this->_getSummaryFilesHash($files) . '.css';
 
         if (!file_exists($resultFile)) {
             $css = '';
 
             foreach ($files as $file => $html) {
-                $file = str_replace(\Yii::getAlias($this->web_path), '', $file);
+                $file = str_replace(\Yii::getAlias($this->webPath), '', $file);
 
-                $content = file_get_contents(\Yii::getAlias($this->base_path) . $file);
+                $content = file_get_contents(\Yii::getAlias($this->basePath) . $file);
 
                 preg_match_all('|url\(([^)]+)\)|is', $content, $m);
                 if (!empty($m[0])) {
@@ -199,7 +195,7 @@ class View extends \yii\web\View
                         if ($this->isUrl($url)) {
                             $result[$m[1][$k]] = '\'' . $url . '\'';
                         } else {
-                            $result[$m[1][$k]] = '\'' . \Yii::getAlias($this->web_path) . $path . '/' . $url . '\'';
+                            $result[$m[1][$k]] = '\'' . \Yii::getAlias($this->webPath) . $path . '/' . $url . '\'';
                         }
                     }
                     $content = str_replace(array_keys($result), array_values($result), $content);
@@ -212,11 +208,11 @@ class View extends \yii\web\View
 
             if ($this->compressCss) {
                 $css = (new \CSSmin())
-                    ->run($css, $this->css_linebreak_pos);
+                    ->run($css, $this->cssLinebreakPos);
             }
 
-            if (false !== $this->force_charset) {
-                $charsets = '@charset "' . (string)$this->force_charset . '";' . "\n";
+            if (false !== $this->forceCharset) {
+                $charsets = '@charset "' . (string)$this->forceCharset . '";' . "\n";
             } else {
                 $charsets = $this->collectCharsets($css);
             }
@@ -226,12 +222,12 @@ class View extends \yii\web\View
 
             file_put_contents($resultFile, $charsets . $imports . $fonts . $css);
 
-            if (false !== $this->file_mode) {
-                @chmod($resultFile, $this->file_mode);
+            if (false !== $this->fileMode) {
+                @chmod($resultFile, $this->fileMode);
             }
         }
 
-        $file = sprintf('%s%s', \Yii::getAlias($this->web_path), str_replace(\Yii::getAlias($this->base_path), '', $resultFile));
+        $file = sprintf('%s%s', \Yii::getAlias($this->webPath), str_replace(\Yii::getAlias($this->basePath), '', $resultFile));
 
         $this->cssFiles[$file] = helpers\Html::cssFile($file);
     }
@@ -245,7 +241,7 @@ class View extends \yii\web\View
             $jsFiles = $this->jsFiles;
 
             foreach ($jsFiles as $position => $files) {
-                if (false === in_array($position, $this->js_position, true)) {
+                if (false === in_array($position, $this->jsPosition, true)) {
                     $this->jsFiles[$position] = [];
                     foreach ($files as $file => $html) {
                         $this->jsFiles[$position][$file] = $html;
@@ -287,11 +283,11 @@ class View extends \yii\web\View
      */
     protected function processMinifyJs($position, $files)
     {
-        $resultFile = sprintf('%s/%s.js', $this->minify_path, $this->_getSummaryFilesHash($files));
+        $resultFile = sprintf('%s/%s.js', $this->minifyPath, $this->_getSummaryFilesHash($files));
         if (!file_exists($resultFile)) {
             $js = '';
             foreach ($files as $file => $html) {
-                $file = \Yii::getAlias($this->base_path) . str_replace(\Yii::getAlias($this->web_path), '', $file);
+                $file = \Yii::getAlias($this->basePath) . str_replace(\Yii::getAlias($this->webPath), '', $file);
                 $js .= file_get_contents($file) . ';' . PHP_EOL;
             }
 
@@ -302,12 +298,12 @@ class View extends \yii\web\View
 
             file_put_contents($resultFile, $js);
 
-            if (false !== $this->file_mode) {
-                @chmod($resultFile, $this->file_mode);
+            if (false !== $this->fileMode) {
+                @chmod($resultFile, $this->fileMode);
             }
         }
 
-        $file = sprintf('%s%s', \Yii::getAlias($this->web_path), str_replace(\Yii::getAlias($this->base_path), '', $resultFile));
+        $file = sprintf('%s%s', \Yii::getAlias($this->webPath), str_replace(\Yii::getAlias($this->basePath), '', $resultFile));
 
         $this->jsFiles[$position][$file] = helpers\Html::jsFile($file);
     }
@@ -384,7 +380,7 @@ class View extends \yii\web\View
      */
     protected function expandImports(&$css)
     {
-        if (true === $this->expand_imports) {
+        if (true === $this->expandImports) {
             preg_match_all('|\@import\s([^;]+);|is', str_replace('&amp;', '&', $css), $m);
             if (!empty($m[0])) {
                 foreach ($m[0] as $k => $v) {
@@ -452,7 +448,7 @@ class View extends \yii\web\View
     {
         $result = '';
         foreach ($files as $file => $html) {
-            $path = \Yii::getAlias($this->base_path) . $file;
+            $path = \Yii::getAlias($this->basePath) . $file;
 
             if ($this->thisFileNeedMinify($file, $html) && file_exists($path)) {
                 if ($this->hashMethod === 'time') {

@@ -1,15 +1,9 @@
 <?php
-/**
- * HtmlCompressor.php
- * @author Revin Roman
- * @link https://rmrevin.ru
- */
 
-namespace rmrevin\yii\minify;
+namespace milano\minify;
 
 /**
  * Class HtmlCompressor
- * @package rmrevin\yii\minify
  */
 class HtmlCompressor
 {
