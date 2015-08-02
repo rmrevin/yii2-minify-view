@@ -1,3 +1,7 @@
-/.idea
-/coverage
-/vendor
+## PhpStorm project
+.idea
+
+## Composer & installed packages
+composer.phar
+composer.lock
+vendor
