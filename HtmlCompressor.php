@@ -189,6 +189,8 @@ class HtmlCompressor
      */
     private function html_compress($data, $options = null)
     {
+        \Yii::warning(sprintf('You are using an deprecated method `%s`.', 'html_compress'));
+
         return $this->htmlCompress($data, $options);
     }
 
