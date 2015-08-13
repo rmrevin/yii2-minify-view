@@ -18,7 +18,7 @@ Code Status
 
 Support
 -------
-[GutHub issues](https://github.com/rmrevin/yii2-minify-view/issues) or [public chat](https://gitter.im/rmrevin/support?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
+[GutHub issues](https://github.com/rmrevin/yii2-minify-view/issues) or [public chat](https://gitter.im/rmrevin/support).
 
 Installation
 ------------
