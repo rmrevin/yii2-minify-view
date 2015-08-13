@@ -16,6 +16,10 @@ Code Status
 [![Travis CI Build Status](https://travis-ci.org/rmrevin/yii2-minify-view.svg)](https://travis-ci.org/rmrevin/yii2-minify-view)
 [![Dependency Status](https://www.versioneye.com/user/projects/54119b4b9e1622a6510000e1/badge.svg)](https://www.versioneye.com/user/projects/54119b4b9e1622a6510000e1)
 
+Support
+-------
+[GutHub issues](https://github.com/rmrevin/yii2-minify-view/issues) or [public chat](https://gitter.im/rmrevin/support?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
+
 Installation
 ------------
 ```bash
