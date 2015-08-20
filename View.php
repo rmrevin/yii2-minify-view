@@ -199,7 +199,7 @@ class View extends \yii\web\View
             }
 
             $this->expandImports($css);
-
+            $css = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#','',$css);
             $css = (new \CSSmin())
                 ->run($css, $this->css_linebreak_pos);
 
@@ -282,7 +282,7 @@ class View extends \yii\web\View
                 $file = \Yii::getAlias($this->base_path) . str_replace(\Yii::getAlias($this->web_path), '', $file);
                 $js .= file_get_contents($file) . ';' . PHP_EOL;
             }
-
+            $js = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#','',$js);
             $compressedJs = (new \JSMin($js))
                 ->min();
 
