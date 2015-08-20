@@ -23,7 +23,7 @@ Support
 Installation
 ------------
 ```bash
-composer require "rmrevin/yii2-minify-view:1.8.*"
+composer require "rmrevin/yii2-minify-view:~1.9"
 ```
 
 Configure
