@@ -387,9 +387,8 @@ class View extends \yii\web\View
      */
     protected function removeJsComments(&$code)
     {
-        // @todo
         if (true === $this->removeComments) {
-            //$code = preg_replace('', '', $code);
+            $code = preg_replace('#(?:[^\*]|^)(\/\*(?:[^*]*(?:\*(?!\/))*)*\*\/)#', '', $code);
         }
     }
 
