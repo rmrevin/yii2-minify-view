@@ -25,6 +25,9 @@ class View extends \yii\web\View
     /** @var bool */
     public $minifyJs = true;
 
+    /** @var bool */
+    public $removeComments = true;
+
     /** @var string path alias to web base (in url) */
     public $web_path = '@web';
 
@@ -199,7 +202,9 @@ class View extends \yii\web\View
             }
 
             $this->expandImports($css);
-            $css = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#','',$css);
+
+            $this->removeCssComments($css);
+
             $css = (new \CSSmin())
                 ->run($css, $this->css_linebreak_pos);
 
@@ -282,7 +287,9 @@ class View extends \yii\web\View
                 $file = \Yii::getAlias($this->base_path) . str_replace(\Yii::getAlias($this->web_path), '', $file);
                 $js .= file_get_contents($file) . ';' . PHP_EOL;
             }
-            $js = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#','',$js);
+
+            $this->removeJsComments($js);
+
             $compressedJs = (new \JSMin($js))
                 ->min();
 
@@ -333,52 +340,73 @@ class View extends \yii\web\View
     }
 
     /**
-     * @param string $css
+     * @param string $code
      * @return string
      */
-    protected function collectCharsets(&$css)
+    protected function collectCharsets(&$code)
     {
-        return $this->_collect($css, '|\@charset[^;]+|is', function ($string) {
+        return $this->_collect($code, '|\@charset[^;]+|is', function ($string) {
             return $string . ';';
         });
     }
 
     /**
-     * @param string $css
+     * @param string $code
      * @return string
      */
-    protected function collectImports(&$css)
+    protected function collectImports(&$code)
     {
-        return $this->_collect($css, '|\@import[^;]+|is', function ($string) {
+        return $this->_collect($code, '|\@import[^;]+|is', function ($string) {
             return $string . ';';
         });
     }
 
     /**
-     * @param string $css
+     * @param string $code
      * @return string
      */
-    protected function collectFonts(&$css)
+    protected function collectFonts(&$code)
     {
-        return $this->_collect($css, '|\@font-face\{[^}]+\}|is', function ($string) {
+        return $this->_collect($code, '|\@font-face\{[^}]+\}|is', function ($string) {
             return $string;
         });
     }
 
     /**
-     * @param string $css
+     * @param string $code
      */
-    protected function expandImports(&$css)
+    protected function removeCssComments(&$code)
+    {
+        if (true === $this->removeComments) {
+            $code = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $code);
+        }
+    }
+
+    /**
+     * @param string $code
+     */
+    protected function removeJsComments(&$code)
+    {
+        // @todo
+        if (true === $this->removeComments) {
+            //$code = preg_replace('', '', $code);
+        }
+    }
+
+    /**
+     * @param string $code
+     */
+    protected function expandImports(&$code)
     {
         if (true === $this->expand_imports) {
-            preg_match_all('|\@import\s([^;]+);|is', str_replace('&amp;', '&', $css), $m);
+            preg_match_all('|\@import\s([^;]+);|is', str_replace('&amp;', '&', $code), $m);
             if (!empty($m[0])) {
                 foreach ($m[0] as $k => $v) {
                     $import_url = $m[1][$k];
                     if (!empty($import_url)) {
                         $import_content = $this->_getImportContent($import_url);
                         if (!empty($import_content)) {
-                            $css = str_replace($m[0][$k], $import_content, $css);
+                            $code = str_replace($m[0][$k], $import_content, $code);
                         }
                     }
                 }
@@ -410,19 +438,19 @@ class View extends \yii\web\View
     }
 
     /**
-     * @param string $css
+     * @param string $code
      * @param string $pattern
      * @param callable $handler
      * @return string
      */
-    protected function _collect(&$css, $pattern, $handler)
+    protected function _collect(&$code, $pattern, $handler)
     {
         $result = '';
 
-        preg_match_all($pattern, $css, $m);
+        preg_match_all($pattern, $code, $m);
         foreach ($m[0] as $string) {
             $string = $handler($string);
-            $css = str_replace($string, '', $css);
+            $code = str_replace($string, '', $code);
 
             $result .= $string . PHP_EOL;
         }
