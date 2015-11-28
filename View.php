@@ -466,7 +466,7 @@ class View extends \yii\web\View
     {
         $result = '';
         foreach ($files as $file => $html) {
-            $path = \Yii::getAlias($this->base_path) . $file;
+            $path = \Yii::getAlias($this->base_path) . str_replace(\Yii::getAlias($this->web_path), '', $file);
 
             if ($this->thisFileNeedMinify($file, $html) && file_exists($path)) {
                 $result .= sha1_file($path);
