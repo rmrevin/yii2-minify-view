@@ -284,7 +284,7 @@ class View extends \yii\web\View
         if (!file_exists($resultFile)) {
             $js = '';
             foreach ($files as $file => $html) {
-                $file = \Yii::getAlias($this->base_path) . str_replace(\Yii::getAlias($this->web_path), '', $file);
+                $file = $this->getAbsoluteFilePath($file);
                 $js .= file_get_contents($file) . ';' . PHP_EOL;
             }
 
@@ -459,6 +459,15 @@ class View extends \yii\web\View
     }
 
     /**
+     * @param string $file
+     * @return string
+     */
+    protected function getAbsoluteFilePath($file)
+    {
+        return \Yii::getAlias($this->base_path) . str_replace(\Yii::getAlias($this->web_path), '', $file);
+    }
+
+    /**
      * @param array $files
      * @return string
      */
@@ -466,7 +475,7 @@ class View extends \yii\web\View
     {
         $result = '';
         foreach ($files as $file => $html) {
-            $path = \Yii::getAlias($this->base_path) . $file;
+            $path = $this->getAbsoluteFilePath($file);
 
             if ($this->thisFileNeedMinify($file, $html) && file_exists($path)) {
                 $result .= sha1_file($path);
