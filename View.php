@@ -7,6 +7,7 @@
 
 namespace rmrevin\yii\minify;
 
+use MatthiasMullie\Minify;
 use yii\helpers;
 
 /**
@@ -201,23 +202,24 @@ class View extends \yii\web\View
                 $css .= $content;
             }
 
-            $this->expandImports($css);
+//            $this->expandImports($css);
 
-            $this->removeCssComments($css);
+//            $this->removeCssComments($css);
 
-            $css = (new \CSSmin())
-                ->run($css, $this->css_linebreak_pos);
+            $Minifier = new Minify\CSS;
+            $Minifier->add($css);
 
-            if (false !== $this->force_charset) {
-                $charsets = '@charset "' . (string)$this->force_charset . '";' . "\n";
-            } else {
-                $charsets = $this->collectCharsets($css);
-            }
+//            if (false !== $this->force_charset) {
+//                $charsets = '@charset "' . (string)$this->force_charset . '";' . "\n";
+//            } else {
+//                $charsets = $this->collectCharsets($css);
+//            }
 
-            $imports = $this->collectImports($css);
-            $fonts = $this->collectFonts($css);
+//            $imports = $this->collectImports($css);
+//            $fonts = $this->collectFonts($css);
 
-            file_put_contents($resultFile, $charsets . $imports . $fonts . $css);
+            $Minifier->gzip($resultFile);
+//            file_put_contents(, $charsets . $imports . $fonts . $css);
 
             if (false !== $this->file_mode) {
                 @chmod($resultFile, $this->file_mode);
@@ -290,10 +292,10 @@ class View extends \yii\web\View
 
             $this->removeJsComments($js);
 
-            $compressedJs = (new \JSMin($js))
-                ->min();
+            $Minifier = new Minify\JS;
+            $Minifier->add($js);
 
-            file_put_contents($resultFile, $compressedJs);
+            $Minifier->gzip($resultFile);
 
             if (false !== $this->file_mode) {
                 @chmod($resultFile, $this->file_mode);
