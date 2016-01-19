@@ -31,6 +31,7 @@ class ViewTest extends minify\tests\unit\TestCase
         ob_start();
         echo '<html>This is test page</html>';
         $this->getView()->endPage(false);
+        ob_end_clean();
 
         $files = FileHelper::findFiles($this->getView()->minify_path);
         $this->assertEquals(2, count($files));
@@ -50,6 +51,7 @@ class ViewTest extends minify\tests\unit\TestCase
         ob_start();
         echo '<html>This is test page</html>';
         $this->getView()->endPage(false);
+        ob_end_clean();
     }
 
     public function testMinifyPathReadableException()
