@@ -176,6 +176,7 @@ class View extends \yii\web\View
             $css = '';
 
             foreach ($files as $file => $html) {
+                $file = (strpos($file, "?")) ? parse_url($file, PHP_URL_PATH) : $file;
                 $file = str_replace(\Yii::getAlias($this->web_path), '', $file);
 
                 $content = file_get_contents(\Yii::getAlias($this->base_path) . $file);
@@ -284,6 +285,7 @@ class View extends \yii\web\View
         if (!file_exists($resultFile)) {
             $js = '';
             foreach ($files as $file => $html) {
+                $file = (strpos($file, "?")) ? parse_url($file, PHP_URL_PATH) : $file;
                 $file = $this->getAbsoluteFilePath($file);
                 $js .= file_get_contents($file) . ';' . PHP_EOL;
             }
