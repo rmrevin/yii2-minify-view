@@ -31,7 +31,6 @@ class ViewTest extends minify\tests\unit\TestCase
         ob_start();
         echo '<html>This is test page</html>';
         $this->getView()->endPage(false);
-        ob_end_clean();
 
         $files = FileHelper::findFiles($this->getView()->minify_path);
         $this->assertEquals(2, count($files));
@@ -51,27 +50,6 @@ class ViewTest extends minify\tests\unit\TestCase
         ob_start();
         echo '<html>This is test page</html>';
         $this->getView()->endPage(false);
-        ob_end_clean();
-    }
-
-    public function testMinifyPathReadableException()
-    {
-        $this->setExpectedException('rmrevin\yii\minify\Exception', 'Directory for compressed assets is not readable.');
-
-        \Yii::createObject([
-            'class' => 'rmrevin\yii\minify\View',
-            'minify_path' => '/root',
-        ]);
-    }
-
-    public function testMinifyPathWritableException()
-    {
-        $this->setExpectedException('rmrevin\yii\minify\Exception', 'Directory for compressed assets is not writable.');
-
-        \Yii::createObject([
-            'class' => 'rmrevin\yii\minify\View',
-            'minify_path' => '/etc',
-        ]);
     }
 
     /**
