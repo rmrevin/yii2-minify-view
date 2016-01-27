@@ -68,7 +68,7 @@ class View extends \yii\web\View
     {
         parent::init();
 
-        if (php_sapi_name() != 'cli') {
+        if (php_sapi_name() !== 'cli') {
             $urlDetails = \Yii::$app->urlManager->parseRequest(\Yii::$app->request);
             if (in_array($urlDetails[0], $this->exclude_routes)) {
                 $this->enableMinify = false;
