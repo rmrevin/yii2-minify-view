@@ -176,25 +176,29 @@ class View extends \yii\web\View
             $css = '';
 
             foreach ($files as $file => $html) {
+                $path = dirname($file);
                 $file = $this->getAbsoluteFilePath($file);
 
-                $content = file_get_contents(\Yii::getAlias($this->base_path) . $file);
+                $content = file_get_contents($file);
 
                 preg_match_all('|url\(([^)]+)\)|is', $content, $m);
                 if (!empty($m[0])) {
-                    $path = dirname($file);
                     $result = [];
+
                     foreach ($m[0] as $k => $v) {
                         if (in_array(strpos($m[1][$k], 'data:'), [0, 1], true)) {
                             continue;
                         }
+
                         $url = str_replace(['\'', '"'], '', $m[1][$k]);
+
                         if ($this->isUrl($url)) {
                             $result[$m[1][$k]] = '\'' . $url . '\'';
                         } else {
-                            $result[$m[1][$k]] = '\'' . \Yii::getAlias($this->web_path) . $path . '/' . $url . '\'';
+                            $result[$m[1][$k]] = '\'' . $path . '/' . $url . '\'';
                         }
                     }
+
                     $content = str_replace(array_keys($result), array_values($result), $content);
                 }
 
@@ -285,7 +289,6 @@ class View extends \yii\web\View
             $js = '';
             foreach ($files as $file => $html) {
                 $file = $this->getAbsoluteFilePath($file);
-
                 $js .= file_get_contents($file) . ';' . PHP_EOL;
             }
 
