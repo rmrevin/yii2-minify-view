@@ -58,12 +58,22 @@ class View extends \yii\web\View
     /** @var bool do I need to compress the result html page. */
     public $compress_output = false;
 
+    /** @var array routes to exclude from minify. */
+    public $exclude_routes = [];
+
     /**
      * @throws \rmrevin\yii\minify\Exception
      */
     public function init()
     {
         parent::init();
+
+        if (php_sapi_name() !== 'cli') {
+            $urlDetails = \Yii::$app->urlManager->parseRequest(\Yii::$app->request);
+            if (in_array($urlDetails[0], $this->exclude_routes)) {
+                $this->enableMinify = false;
+            }
+        }
 
         $minify_path = $this->minify_path = (string)\Yii::getAlias($this->minify_path);
         if (!file_exists($minify_path)) {
