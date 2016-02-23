@@ -1,3 +1,16 @@
+2015-08-20 - 1.9.4
+------------------
+* Content are no longer compressed inside textarea.
+* In `View` added new property `compress_options`.
+
+2015-08-20 - 1.9.3
+------------------
+* Refactoring.
+
+2015-08-20 - 1.9.2
+------------------
+* Refactoring.
+
 2015-08-20 - 1.9.1
 ------------------
 * Added deleting comments in css.

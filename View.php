@@ -59,6 +59,13 @@ class View extends \yii\web\View
     public $compress_output = false;
 
     /**
+     * @var array options for compressing output result
+     *   * extra - use more compact algorithm
+     *   * no-comments - cut all the html comments
+     */
+    public $compress_options = ['extra' => true];
+
+    /**
      * @throws \rmrevin\yii\minify\Exception
      */
     public function init()
@@ -84,11 +91,11 @@ class View extends \yii\web\View
                 $Response = $Event->sender;
                 if ($Response->format === \yii\web\Response::FORMAT_HTML) {
                     if (!empty($Response->data)) {
-                        $Response->data = HtmlCompressor::compress($Response->data, ['extra' => true]);
+                        $Response->data = HtmlCompressor::compress($Response->data, $this->compress_options);
                     }
 
                     if (!empty($Response->content)) {
-                        $Response->content = HtmlCompressor::compress($Response->content, ['extra' => true]);
+                        $Response->content = HtmlCompressor::compress($Response->content, $this->compress_options);
                     }
                 }
             });

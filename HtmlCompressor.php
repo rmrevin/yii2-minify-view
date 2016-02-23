@@ -78,31 +78,40 @@ class HtmlCompressor
         $data .= "\n";
         $out = '';
         $inside_pre = false;
+        $inside_textarea = false;
         $bytecount = 0;
 
         while ($line = $this->getLine($data)) {
             $bytecount += strlen($line);
 
-            if (!$inside_pre) {
-                if (strpos($line, '<pre') === false) {
-                    // Since we're not inside a <pre> block, we can trim both ends of the line
-                    $line = trim($line);
-
-                    // And condense multiple spaces down to one
-                    $line = preg_replace('/\s\s+/', ' ', $line);
-                } else {
+            if ($inside_pre) {
+                list($line, $inside_pre) = $this->checkInsidePre($line);
+            } elseif ($inside_textarea) {
+                list($line, $inside_textarea) = $this->checkInsideTextarea($line);
+            } else {
+                if (strpos($line, '<pre') !== false) {
                     // Only trim the beginning since we just entered a <pre> block...
                     $line = ltrim($line);
 
                     // If the <pre> ends on the same line, don't turn on $inside_pre...
                     list($line, $inside_pre) = $this->checkInsidePre($line);
+                } elseif (strpos($line, '<textarea') !== false) {
+                    // Only trim the beginning since we just entered a <textarea> block...
+                    $line = ltrim($line);
+
+                    // If the <textarea> ends on the same line, don't turn on $inside_textarea...
+                    list($line, $inside_textarea) = $this->checkInsideTextarea($line);
+                } else {
+                    // Since we're not inside a <pre> block, we can trim both ends of the line
+                    $line = trim($line);
+
+                    // And condense multiple spaces down to one
+                    $line = preg_replace('/\s\s+/', ' ', $line);
                 }
-            } else {
-                list($line, $inside_pre) = $this->checkInsidePre($line);
             }
 
             // Filter out any blank lines that aren't inside a <pre> block...
-            if ($inside_pre) {
+            if ($inside_pre || $inside_textarea) {
                 $out .= $line;
             } elseif ($line != '') {
                 $out .= $line . "\n";
@@ -152,6 +161,22 @@ class HtmlCompressor
         }
 
         return [$line, $inside_pre];
+    }
+
+    /**
+     * @param $line
+     * @return array
+     */
+    private function checkInsideTextarea($line)
+    {
+        $inside_textarea = true;
+
+        if ((strpos($line, '</textarea') !== false) && (strripos($line, '</textarea') >= strripos($line, '<textarea'))) {
+            $line = rtrim($line);
+            $inside_textarea = false;
+        }
+
+        return [$line, $inside_textarea];
     }
 
     /**

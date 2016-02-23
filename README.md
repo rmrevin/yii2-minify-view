@@ -44,6 +44,7 @@ return [
 			'force_charset' => 'UTF-8', // charset forcibly assign, otherwise will use all of the files found charset
 			'expand_imports' => true, // whether to change @import on content
 			'compress_output' => true, // compress result html page
+			'compress_options' => ['extra' => true], // options for compress
 		]
 	]
 ];
