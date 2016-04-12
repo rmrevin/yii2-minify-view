@@ -114,7 +114,7 @@ class View extends \yii\web\View
             $this->registerAssetFiles($bundle);
         }
 
-        if (true === $this->enableMinify) {
+        if (true === $this->enableMinify && !$ajaxMode) {
             if (true === $this->minifyCss) {
                 $this->minifyCSS();
             }
