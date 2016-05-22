@@ -19,6 +19,9 @@ class View extends \yii\web\View
     /** @var bool */
     public $enableMinify = true;
 
+    /** @var string filemtime or sha1 */
+    public $fileCheckAlgorithm = 'filemtime';
+
     /** @var bool */
     public $minifyCss = true;
 
@@ -498,7 +501,15 @@ class View extends \yii\web\View
             $path = $this->getAbsoluteFilePath($file);
 
             if ($this->thisFileNeedMinify($file, $html) && file_exists($path)) {
-                $result .= sha1_file($path);
+                switch ($this->fileCheckAlgorithm) {
+                    default:
+                    case 'filemtime':
+                        $result .= filemtime($path);
+                        break;
+                    case 'sha1':
+                        $result .= sha1_file($path);
+                        break;
+                }
             }
         }
 

@@ -1,3 +1,7 @@
+2016-05-22 - 1.10.0
+-------------------
+* Add `fileCheckAlgorithm` property.
+
 2015-08-20 - 1.9.4
 ------------------
 * Content are no longer compressed inside textarea.
