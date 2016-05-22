@@ -1,3 +1,8 @@
+2016-05-23 - 1.10.1
+-------------------
+* Bugfix.
+* Refactoring.
+
 2016-05-22 - 1.10.0
 -------------------
 * Add `fileCheckAlgorithm` property.
