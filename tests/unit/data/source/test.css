@@ -1,5 +1,6 @@
 /** css */
 @import url(http://fonts.googleapis.com/css?family=Open+Sans);
+@import url("for_import.css");
 
 div.test {
   border: 1px solid #000000;

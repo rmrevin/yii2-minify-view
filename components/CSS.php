@@ -7,6 +7,7 @@
 
 namespace rmrevin\yii\minify\components;
 
+use Yii;
 use yii\helpers\Html;
 use yii\helpers\StringHelper;
 
@@ -215,6 +216,9 @@ class CSS extends MinifyComponent
             }
 
             if (!empty($url)) {
+                if (strpos($url, 'http://') !== 0) {
+                    $url = Yii::getAlias($this->view->base_path . $url);
+                }
                 $result = file_get_contents($url);
             }
         }
