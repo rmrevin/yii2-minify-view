@@ -9,7 +9,6 @@ namespace rmrevin\yii\minify\components;
 
 use Yii;
 use yii\helpers\Html;
-use yii\helpers\StringHelper;
 
 /**
  * Class CSS
@@ -208,17 +207,18 @@ class CSS extends MinifyComponent
     {
         $result = null;
 
-        if ('url(' === StringHelper::byteSubstr($url, 0, 4)) {
+        if ('url(' === mb_substr($url, 0, 4)) {
             $url = str_replace(['url(\'', 'url("', 'url(', '\')', '")', ')'], '', $url);
 
-            if (StringHelper::byteSubstr($url, 0, 2) === '//') {
+            if (mb_substr($url, 0, 2) === '//') {
                 $url = preg_replace('|^//|', 'http://', $url, 1);
             }
 
             if (!empty($url)) {
-                if (strpos($url, 'http://') !== 0) {
+                if (!in_array(mb_substr($url, 0, 4), ['http', 'ftp:'], true)) {
                     $url = Yii::getAlias($this->view->base_path . $url);
                 }
+
                 $result = file_get_contents($url);
             }
         }
