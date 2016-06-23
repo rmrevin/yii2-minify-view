@@ -23,7 +23,7 @@ Support
 Installation
 ------------
 ```bash
-composer require "rmrevin/yii2-minify-view:~1.10"
+composer require "rmrevin/yii2-minify-view:~1.11"
 ```
 
 Configure
@@ -45,6 +45,10 @@ return [
 			'expand_imports' => true, // whether to change @import on content
 			'compress_output' => true, // compress result html page
 			'compress_options' => ['extra' => true], // options for compress
+			'concatCss' => true, // concatenate css
+			'minifyCss' => true, // minificate css
+			'concatJs' => true, // concatenate js
+			'minifyJs' => true, // minificate js
 		]
 	]
 ];

@@ -7,7 +7,6 @@
 
 namespace rmrevin\yii\minify\components;
 
-use Yii;
 use yii\helpers\Html;
 
 /**
@@ -17,7 +16,7 @@ use yii\helpers\Html;
 class CSS extends MinifyComponent
 {
 
-    public function minify()
+    public function export()
     {
         $cssFiles = $this->view->cssFiles;
 
@@ -25,17 +24,23 @@ class CSS extends MinifyComponent
 
         $toMinify = [];
 
-        foreach ($cssFiles as $file => $html) {
-            if ($this->thisFileNeedMinify($file, $html)) {
-                $toMinify[$file] = $html;
-            } else {
-                if (!empty($toMinify)) {
-                    $this->process($toMinify);
+        if (!empty($cssFiles)) {
+            foreach ($cssFiles as $file => $html) {
+                if ($this->thisFileNeedMinify($file, $html)) {
+                    if ($this->view->concatCss) {
+                        $toMinify[$file] = $html;
+                    } else {
+                        $this->process([$file => $html]);
+                    }
+                } else {
+                    if (!empty($toMinify)) {
+                        $this->process($toMinify);
 
-                    $toMinify = [];
+                        $toMinify = [];
+                    }
+
+                    $this->view->cssFiles[$file] = $html;
                 }
-
-                $this->view->cssFiles[$file] = $html;
             }
         }
 
@@ -90,8 +95,10 @@ class CSS extends MinifyComponent
 
             $this->removeCssComments($css);
 
-            $css = (new \CSSmin())
-                ->run($css, $this->view->css_linebreak_pos);
+            if ($this->view->minifyCss) {
+                $css = (new \CSSmin())
+                    ->run($css, $this->view->css_linebreak_pos);
+            }
 
             if (false !== $this->view->force_charset) {
                 $charsets = '@charset "' . (string)$this->view->force_charset . '";' . "\n";
@@ -216,7 +223,7 @@ class CSS extends MinifyComponent
 
             if (!empty($url)) {
                 if (!in_array(mb_substr($url, 0, 4), ['http', 'ftp:'], true)) {
-                    $url = Yii::getAlias($this->view->base_path . $url);
+                    $url = \Yii::getAlias($this->view->base_path . $url);
                 }
 
                 $result = file_get_contents($url);

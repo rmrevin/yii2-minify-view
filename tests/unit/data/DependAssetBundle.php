@@ -19,15 +19,15 @@ class DependAssetBundle extends \yii\web\AssetBundle
     ];
 
     public $css = [
-        'depend.css'
+        'depend.css',
     ];
 
     public $jsOptions = [
-        'position' => \rmrevin\yii\minify\View::POS_HEAD
+        'position' => \rmrevin\yii\minify\View::POS_HEAD,
     ];
 
     public $depends = [
-        'rmrevin\yii\minify\tests\unit\data\JQueryAssetBundle'
+        'rmrevin\yii\minify\tests\unit\data\JQueryAssetBundle',
     ];
 
     public function init()

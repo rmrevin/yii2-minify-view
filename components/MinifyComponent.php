@@ -30,7 +30,7 @@ abstract class MinifyComponent
         $this->view = $view;
     }
 
-    abstract public function minify();
+    abstract public function export();
 
     /**
      * @param string $file
@@ -102,7 +102,7 @@ abstract class MinifyComponent
                 switch ($this->view->fileCheckAlgorithm) {
                     default:
                     case 'filemtime':
-                        $result .= filemtime($path);
+                        $result .= filemtime($path) . $file;
                         break;
                     case 'sha1':
                         $result .= sha1_file($path);

@@ -18,9 +18,8 @@ class JQueryAssetBundle extends \yii\web\AssetBundle
         '//code.jquery.com/jquery-1.11.2.min.js',
     ];
 
-
     public $jsOptions = [
-        'position' => \rmrevin\yii\minify\View::POS_HEAD
+        'position' => \rmrevin\yii\minify\View::POS_HEAD,
     ];
 
     public function init()

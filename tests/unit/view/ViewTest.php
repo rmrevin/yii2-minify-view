@@ -24,6 +24,23 @@ class ViewTest extends minify\tests\unit\TestCase
         $this->assertEquals('CP1251', $this->getView()->force_charset);
     }
 
+    public function testEmptyBundle()
+    {
+        minify\tests\unit\data\EmptyAssetBundle::register($this->getView());
+
+        ob_start();
+        echo '<html>This is test page</html>';
+        $this->getView()->endPage(false);
+
+        $files = FileHelper::findFiles($this->getView()->minify_path);
+
+        $this->assertEquals(0, count($files));
+
+        foreach ($files as $file) {
+            $this->assertNotEmpty(file_get_contents($file));
+        }
+    }
+
     public function testEndPage()
     {
         minify\tests\unit\data\TestAssetBundle::register($this->getView());

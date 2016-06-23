@@ -16,49 +16,89 @@ use yii\helpers\FileHelper;
 class View extends \yii\web\View
 {
 
-    /** @var bool */
+    /**
+     * @var bool
+     */
     public $enableMinify = true;
 
-    /** @var string filemtime or sha1 */
-    public $fileCheckAlgorithm = 'filemtime';
+    /**
+     * @var string filemtime or sha1
+     */
+    public $fileCheckAlgorithm = 'sha1';
 
-    /** @var bool */
+    /**
+     * @var bool
+     */
+    public $concatCss = true;
+
+    /**
+     * @var bool
+     */
     public $minifyCss = true;
 
-    /** @var bool */
+    /**
+     * @var bool
+     */
+    public $concatJs = true;
+
+    /**
+     * @var bool
+     */
     public $minifyJs = true;
 
-    /** @var bool */
+    /**
+     * @var bool
+     */
     public $removeComments = true;
 
-    /** @var string path alias to web base (in url) */
+    /**
+     * @var string path alias to web base (in url)
+     */
     public $web_path = '@web';
 
-    /** @var string path alias to web base (absolute) */
+    /**
+     * @var string path alias to web base (absolute)
+     */
     public $base_path = '@webroot';
 
-    /** @var string path alias to save minify result */
+    /**
+     * @var string path alias to save minify result
+     */
     public $minify_path = '@webroot/minify';
 
-    /** @var array positions of js files to be minified */
+    /**
+     * @var array positions of js files to be minified
+     */
     public $js_position = [self::POS_END, self::POS_HEAD];
 
-    /** @var bool|string charset forcibly assign, otherwise will use all of the files found charset */
+    /**
+     * @var bool|string charset forcibly assign, otherwise will use all of the files found charset
+     */
     public $force_charset = false;
 
-    /** @var bool whether to change @import on content */
+    /**
+     * @var bool whether to change @import on content
+     */
     public $expand_imports = true;
 
-    /** @var int */
+    /**
+     * @var int
+     */
     public $css_linebreak_pos = 2048;
 
-    /** @var int|bool chmod of minified file. If false chmod not set */
+    /**
+     * @var int|bool chmod of minified file. If false chmod not set
+     */
     public $file_mode = 0664;
 
-    /** @var array schemes that will be ignored during normalization url */
+    /**
+     * @var array schemes that will be ignored during normalization url
+     */
     public $schemas = ['//', 'http://', 'https://', 'ftp://'];
 
-    /** @var bool do I need to compress the result html page. */
+    /**
+     * @var bool do I need to compress the result html page.
+     */
     public $compress_output = false;
 
     /**
@@ -118,13 +158,8 @@ class View extends \yii\web\View
         }
 
         if (true === $this->enableMinify) {
-            if (true === $this->minifyCss) {
-                (new components\CSS($this))->minify();
-            }
-
-            if (true === $this->minifyJs) {
-                (new components\JS($this))->minify();
-            }
+            (new components\CSS($this))->export();
+            (new components\JS($this))->export();
         }
 
         echo strtr(

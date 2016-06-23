@@ -16,40 +16,46 @@ use yii\helpers\Html;
 class JS extends MinifyComponent
 {
 
-    public function minify()
+    public function export()
     {
         $jsFiles = $this->view->jsFiles;
 
-        foreach ($jsFiles as $position => $files) {
-            if (false === in_array($position, $this->view->js_position, true)) {
-                $this->view->jsFiles[$position] = [];
-                foreach ($files as $file => $html) {
-                    $this->view->jsFiles[$position][$file] = $html;
-                }
-            } else {
-                $this->view->jsFiles[$position] = [];
-
-                $toMinify = [];
-
-                foreach ($files as $file => $html) {
-                    if ($this->thisFileNeedMinify($file, $html)) {
-                        $toMinify[$file] = $html;
-                    } else {
-                        if (!empty($toMinify)) {
-                            $this->process($position, $toMinify);
-
-                            $toMinify = [];
-                        }
-
+        if (!empty($jsFiles)) {
+            foreach ($jsFiles as $position => $files) {
+                if (false === in_array($position, $this->view->js_position, true)) {
+                    $this->view->jsFiles[$position] = [];
+                    foreach ($files as $file => $html) {
                         $this->view->jsFiles[$position][$file] = $html;
                     }
-                }
+                } else {
+                    $this->view->jsFiles[$position] = [];
 
-                if (!empty($toMinify)) {
-                    $this->process($position, $toMinify);
-                }
+                    $toMinify = [];
 
-                unset($toMinify);
+                    foreach ($files as $file => $html) {
+                        if ($this->thisFileNeedMinify($file, $html)) {
+                            if ($this->view->concatJs) {
+                                $toMinify[$file] = $html;
+                            } else {
+                                $this->process($position, [$file => $html]);
+                            }
+                        } else {
+                            if (!empty($toMinify)) {
+                                $this->process($position, $toMinify);
+
+                                $toMinify = [];
+                            }
+
+                            $this->view->jsFiles[$position][$file] = $html;
+                        }
+                    }
+
+                    if (!empty($toMinify)) {
+                        $this->process($position, $toMinify);
+                    }
+
+                    unset($toMinify);
+                }
             }
         }
     }
@@ -70,10 +76,12 @@ class JS extends MinifyComponent
 
             $this->removeJsComments($js);
 
-            $compressedJs = (new \JSMin($js))
-                ->min();
+            if ($this->view->minifyJs) {
+                $js = (new \JSMin($js))
+                    ->min();
+            }
 
-            file_put_contents($resultFile, $compressedJs);
+            file_put_contents($resultFile, $js);
 
             if (false !== $this->view->file_mode) {
                 @chmod($resultFile, $this->view->file_mode);
@@ -86,11 +94,11 @@ class JS extends MinifyComponent
     }
 
     /**
+     * @todo
      * @param string $code
      */
     protected function removeJsComments(&$code)
     {
-        // @todo
         if (true === $this->view->removeComments) {
             //$code = preg_replace('', '', $code);
         }
