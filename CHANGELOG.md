@@ -1,3 +1,8 @@
+2016-08-03 - 1.12.0
+-------------------
+* Enhancement #38 (add `excludeBundles` param).
+* Bugfix #39.
+
 2016-06-22 - 1.11.0
 -------------------
 * Enhancement #35.
