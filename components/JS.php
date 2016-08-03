@@ -24,6 +24,7 @@ class JS extends MinifyComponent
             foreach ($jsFiles as $position => $files) {
                 if (false === in_array($position, $this->view->js_position, true)) {
                     $this->view->jsFiles[$position] = [];
+
                     foreach ($files as $file => $html) {
                         $this->view->jsFiles[$position][$file] = $html;
                     }
@@ -67,11 +68,24 @@ class JS extends MinifyComponent
     protected function process($position, $files)
     {
         $resultFile = sprintf('%s/%s.js', $this->view->minify_path, $this->_getSummaryFilesHash($files));
+
         if (!file_exists($resultFile)) {
             $js = '';
+
             foreach ($files as $file => $html) {
                 $file = $this->getAbsoluteFilePath($file);
-                $js .= file_get_contents($file) . ';' . PHP_EOL;
+
+                $content = '';
+
+                if (!file_exists($file)) {
+                    \Yii::warning(sprintf('Asset file not found `%s`', $file), __METHOD__);
+                } elseif (!is_readable($file)) {
+                    \Yii::warning(sprintf('Asset file not readable `%s`', $file), __METHOD__);
+                } else {
+                    $content .= file_get_contents($file) . ';' . "\n";
+                }
+
+                $js .= $content;
             }
 
             $this->removeJsComments($js);

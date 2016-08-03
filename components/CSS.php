@@ -56,7 +56,7 @@ class CSS extends MinifyComponent
      */
     protected function process(array $files)
     {
-        $resultFile = $this->view->minify_path . '/' . $this->_getSummaryFilesHash($files) . '.css';
+        $resultFile = $this->view->minify_path . DIRECTORY_SEPARATOR . $this->_getSummaryFilesHash($files) . '.css';
 
         if (!file_exists($resultFile)) {
             $css = '';
@@ -65,7 +65,15 @@ class CSS extends MinifyComponent
                 $path = dirname($file);
                 $file = $this->getAbsoluteFilePath($file);
 
-                $content = file_get_contents($file);
+                $content = '';
+
+                if (!file_exists($file)) {
+                    \Yii::warning(sprintf('Asset file not found `%s`', $file), __METHOD__);
+                } elseif (!is_readable($file)) {
+                    \Yii::warning(sprintf('Asset file not readable `%s`', $file), __METHOD__);
+                } else {
+                    $content = file_get_contents($file);
+                }
 
                 $result = [];
 
@@ -100,11 +108,9 @@ class CSS extends MinifyComponent
                     ->run($css, $this->view->css_linebreak_pos);
             }
 
-            if (false !== $this->view->force_charset) {
-                $charsets = '@charset "' . (string)$this->view->force_charset . '";' . "\n";
-            } else {
-                $charsets = $this->collectCharsets($css);
-            }
+            $charsets = false !== $this->view->force_charset
+                ? ('@charset "' . (string)$this->view->force_charset . '";' . "\n")
+                : $this->collectCharsets($css);
 
             $imports = $this->collectImports($css);
             $fonts = $this->collectFonts($css);
@@ -138,11 +144,14 @@ class CSS extends MinifyComponent
     {
         if (true === $this->view->expand_imports) {
             preg_match_all('|\@import\s([^;]+);|is', str_replace('&amp;', '&', $code), $m);
+
             if (!empty($m[0])) {
                 foreach ($m[0] as $k => $v) {
                     $import_url = $m[1][$k];
+
                     if (!empty($import_url)) {
                         $import_content = $this->_getImportContent($import_url);
+
                         if (!empty($import_content)) {
                             $code = str_replace($m[0][$k], $import_content, $code);
                         }
@@ -196,6 +205,7 @@ class CSS extends MinifyComponent
         $result = '';
 
         preg_match_all($pattern, $code, $m);
+
         foreach ($m[0] as $string) {
             $string = $handler($string);
             $code = str_replace($string, '', $code);
