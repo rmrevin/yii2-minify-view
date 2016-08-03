@@ -47,7 +47,7 @@ class ViewTest extends minify\tests\unit\TestCase
 
         ob_start();
         echo '<html>This is test page</html>';
-        $this->getView()->endPage(false);
+        $this->getView()->endBody();
 
         $files = FileHelper::findFiles($this->getView()->minify_path);
 
@@ -89,7 +89,7 @@ class ViewTest extends minify\tests\unit\TestCase
 
         ob_start();
         echo '<html>This is test page with versioning</html>';
-        $view->endPage(false);
+        $view->endBody();
 
         $files = FileHelper::findFiles($view->minify_path);
 
