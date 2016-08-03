@@ -109,6 +109,11 @@ class View extends \yii\web\View
     public $compress_options = ['extra' => true];
 
     /**
+     * @var array
+     */
+    public $excludeBundles = [];
+
+    /**
      * @throws \rmrevin\yii\minify\Exception
      */
     public function init()
@@ -148,13 +153,15 @@ class View extends \yii\web\View
     /**
      * @inheritdoc
      */
-    public function endPage($ajaxMode = false)
+    public function endBody()
     {
-        $this->trigger(self::EVENT_END_PAGE);
+        $this->trigger(self::EVENT_END_BODY);
+        echo self::PH_BODY_END;
 
-        $content = ob_get_clean();
         foreach (array_keys($this->assetBundles) as $bundle) {
-            $this->registerAssetFiles($bundle);
+            if (!in_array($bundle, $this->excludeBundles, true)) {
+                $this->registerAssetFiles($bundle);
+            }
         }
 
         if (true === $this->enableMinify) {
@@ -162,15 +169,10 @@ class View extends \yii\web\View
             (new components\JS($this))->export();
         }
 
-        echo strtr(
-            $content,
-            [
-                self::PH_HEAD => $this->renderHeadHtml(),
-                self::PH_BODY_BEGIN => $this->renderBodyBeginHtml(),
-                self::PH_BODY_END => $this->renderBodyEndHtml($ajaxMode),
-            ]
-        );
-
-        $this->clear();
+        foreach (array_keys($this->assetBundles) as $bundle) {
+            if (in_array($bundle, $this->excludeBundles, true)) {
+                $this->registerAssetFiles($bundle);
+            }
+        }
     }
 }
