@@ -23,7 +23,7 @@ Support
 Installation
 ------------
 ```bash
-composer require "rmrevin/yii2-minify-view:~1.11"
+composer require "rmrevin/yii2-minify-view:~1.12"
 ```
 
 Configure
@@ -49,6 +49,9 @@ return [
 			'minifyCss' => true, // minificate css
 			'concatJs' => true, // concatenate js
 			'minifyJs' => true, // minificate js
+			'excludeBundles' => [
+			    \dev\hellowrld\AssetBundle::class, // exclude this bundle from minification
+            ],
 		]
 	]
 ];
