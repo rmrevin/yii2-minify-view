@@ -173,7 +173,6 @@ class ViewTest extends minify\tests\unit\TestCase
         $view->endBody();
 
         $this->assertEquals(2, count($view->cssFiles));
-        $this->assertArrayHasKey('/assets/25a8907/excluded.css', $view->cssFiles);
 
         $view->endPage(false);
     }
