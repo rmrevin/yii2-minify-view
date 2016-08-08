@@ -150,6 +150,7 @@ class HtmlCompressor
     /**
      * @param $line
      * @return array
+     * @codeCoverageIgnore
      */
     private function checkInsidePre($line)
     {
@@ -166,6 +167,7 @@ class HtmlCompressor
     /**
      * @param $line
      * @return array
+     * @codeCoverageIgnore
      */
     private function checkInsideTextarea($line)
     {
@@ -183,6 +185,7 @@ class HtmlCompressor
      * Returns the next line from an open file handle or a string
      * @param $data
      * @return bool|string
+     * @codeCoverageIgnore
      */
     private function getLine(&$data)
     {

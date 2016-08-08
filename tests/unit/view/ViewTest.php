@@ -26,11 +26,15 @@ class ViewTest extends minify\tests\unit\TestCase
 
     public function testEmptyBundle()
     {
+        $view = $this->getView();
+
         minify\tests\unit\data\EmptyAssetBundle::register($this->getView());
 
         ob_start();
         echo '<html>This is test page</html>';
-        $this->getView()->endPage(false);
+
+        $view->endBody();
+        $view->endPage(false);
 
         $files = FileHelper::findFiles($this->getView()->minify_path);
 
@@ -43,11 +47,15 @@ class ViewTest extends minify\tests\unit\TestCase
 
     public function testEndPage()
     {
+        $view = $this->getView();
+
         minify\tests\unit\data\TestAssetBundle::register($this->getView());
 
         ob_start();
         echo '<html>This is test page</html>';
-        $this->getView()->endBody();
+
+        $view->endBody();
+        $view->endPage(false);
 
         $files = FileHelper::findFiles($this->getView()->minify_path);
 
@@ -60,14 +68,18 @@ class ViewTest extends minify\tests\unit\TestCase
 
     public function testAlternativeEndPage()
     {
-        $this->getView()->expand_imports = false;
-        $this->getView()->force_charset = false;
+        $view = $this->getView();
+
+        $view->expand_imports = false;
+        $view->force_charset = false;
 
         minify\tests\unit\data\TestAssetBundle::register($this->getView());
 
         ob_start();
         echo '<html>This is test page</html>';
-        $this->getView()->endPage(false);
+
+        $view->endBody();
+        $view->endPage(false);
     }
 
     public function testMainWithVersion()
@@ -75,7 +87,7 @@ class ViewTest extends minify\tests\unit\TestCase
         $view = $this->getView();
         $view->assetManager->appendTimestamp = true;
 
-        $this->assertInstanceOf('rmrevin\yii\minify\View', $view);
+        $this->assertInstanceOf(minify\View::className(), $view);
 
         $this->assertEquals('CP1251', $view->force_charset);
     }
@@ -89,7 +101,13 @@ class ViewTest extends minify\tests\unit\TestCase
 
         ob_start();
         echo '<html>This is test page with versioning</html>';
+
         $view->endBody();
+
+        $this->assertEquals(2, count($view->jsFiles[minify\View::POS_HEAD]));
+        $this->assertEquals(1, count($view->jsFiles[minify\View::POS_READY]));
+
+        $view->endPage(false);
 
         $files = FileHelper::findFiles($view->minify_path);
 
@@ -112,6 +130,51 @@ class ViewTest extends minify\tests\unit\TestCase
 
         ob_start();
         echo '<html>This is test page versioning</html>';
+
+        $view->endBody();
+
+        $this->assertEquals(2, count($view->jsFiles[minify\View::POS_HEAD]));
+        $this->assertEquals(1, count($view->jsFiles[minify\View::POS_READY]));
+
+        $view->endPage(false);
+    }
+
+    public function testFiletimeCheckAlgorithm()
+    {
+        $view = $this->getView();
+        $view->fileCheckAlgorithm = 'filemtime';
+
+        minify\tests\unit\data\TestAssetBundle::register($view);
+
+        ob_start();
+        echo '<html>This is test page versioning</html>';
+
+        $view->endBody();
+
+        $this->assertEquals(2, count($view->jsFiles[minify\View::POS_HEAD]));
+        $this->assertEquals(1, count($view->jsFiles[minify\View::POS_READY]));
+
+        $view->endPage(false);
+    }
+
+    public function testExcludeBundle()
+    {
+        $view = $this->getView();
+        $view->excludeBundles = [
+            minify\tests\unit\data\ExcludedAssetBundle::className(),
+        ];
+
+        minify\tests\unit\data\TestAssetBundle::register($view);
+        minify\tests\unit\data\ExcludedAssetBundle::register($view);
+
+        ob_start();
+        echo '<html>This is test page versioning</html>';
+
+        $view->endBody();
+
+        $this->assertEquals(2, count($view->cssFiles));
+        $this->assertArrayHasKey('/assets/25a8907/excluded.css', $view->cssFiles);
+
         $view->endPage(false);
     }
 
