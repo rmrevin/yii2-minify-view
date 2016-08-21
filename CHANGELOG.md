@@ -1,4 +1,4 @@
-2016-08-21 - 1.12.1
+2016-08-21 - 1.12.2
 -------------------
 * Added missed asset manager `appendTimestamp` param.
 
