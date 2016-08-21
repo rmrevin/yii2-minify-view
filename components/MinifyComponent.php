@@ -89,6 +89,23 @@ abstract class MinifyComponent
     }
 
     /**
+     * @param string $resultFile
+     * @return string
+     */
+    protected function prepareResultFile($resultFile)
+    {
+        $file = sprintf('%s%s', \Yii::getAlias($this->view->web_path), str_replace(\Yii::getAlias($this->view->base_path), '', $resultFile));
+
+        $AssetManager = $this->view->getAssetManager();
+
+        if ($AssetManager->appendTimestamp && ($timestamp = @filemtime($resultFile)) > 0) {
+            $file .= "?v=$timestamp";
+        }
+
+        return $file;
+    }
+
+    /**
      * @param array $files
      * @return string
      */

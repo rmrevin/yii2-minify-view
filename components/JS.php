@@ -102,7 +102,7 @@ class JS extends MinifyComponent
             }
         }
 
-        $file = sprintf('%s%s', \Yii::getAlias($this->view->web_path), str_replace(\Yii::getAlias($this->view->base_path), '', $resultFile));
+        $file = $this->prepareResultFile($resultFile);
 
         $this->view->jsFiles[$position][$file] = Html::jsFile($file);
     }

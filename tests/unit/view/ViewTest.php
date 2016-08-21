@@ -9,6 +9,7 @@ namespace rmrevin\yii\minify\tests\unit\view;
 
 use rmrevin\yii\minify;
 use yii\helpers\FileHelper;
+use yii\helpers\Url;
 
 /**
  * Class ViewTest
@@ -135,6 +136,18 @@ class ViewTest extends minify\tests\unit\TestCase
 
         $this->assertEquals(2, count($view->jsFiles[minify\View::POS_HEAD]));
         $this->assertEquals(1, count($view->jsFiles[minify\View::POS_READY]));
+
+        foreach ($view->jsFiles[minify\View::POS_HEAD] as $file => $html) {
+            if (Url::isRelative($file)) {
+                $this->assertTrue(strpos($file, '?v=') !== false);
+            }
+        }
+
+        foreach ($view->jsFiles[minify\View::POS_READY] as $file => $html) {
+            if (Url::isRelative($file)) {
+                $this->assertTrue(strpos($file, '?v=') !== false);
+            }
+        }
 
         $view->endPage(false);
     }

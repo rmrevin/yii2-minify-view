@@ -1,3 +1,7 @@
+2016-08-21 - 1.12.1
+-------------------
+* Added missed asset manager `appendTimestamp` param.
+
 2016-08-03 - 1.12.0
 -------------------
 * Enhancement #38 (add `excludeBundles` param).
