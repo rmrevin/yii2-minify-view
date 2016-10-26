@@ -7,7 +7,9 @@
 
 namespace rmrevin\yii\minify;
 
+use yii\base\Event;
 use yii\helpers\FileHelper;
+use yii\web\Response;
 
 /**
  * Class View
@@ -45,6 +47,11 @@ class View extends \yii\web\View
      * @var bool
      */
     public $minifyJs = true;
+
+    /**
+     * @var bool
+     */
+    public $minifyOutput = false;
 
     /**
      * @var bool
@@ -97,6 +104,7 @@ class View extends \yii\web\View
     public $schemas = ['//', 'http://', 'https://', 'ftp://'];
 
     /**
+     * @deprecated
      * @var bool do I need to compress the result html page.
      */
     public $compress_output = false;
@@ -133,11 +141,12 @@ class View extends \yii\web\View
             throw new Exception('Directory for compressed assets is not writable.');
         }
 
-        if (true === $this->compress_output) {
-            \Yii::$app->response->on(\yii\web\Response::EVENT_BEFORE_SEND, function (\yii\base\Event $Event) {
-                /** @var \yii\web\Response $Response */
+        if (true === $this->enableMinify && (true === $this->minifyOutput || true === $this->compress_output)) {
+            \Yii::$app->response->on(Response::EVENT_BEFORE_SEND, function (Event $Event) {
+                /** @var Response $Response */
                 $Response = $Event->sender;
-                if ($Response->format === \yii\web\Response::FORMAT_HTML) {
+
+                if ($Response->format === Response::FORMAT_HTML) {
                     if (!empty($Response->data)) {
                         $Response->data = HtmlCompressor::compress($Response->data, $this->compress_options);
                     }

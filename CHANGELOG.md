@@ -1,3 +1,9 @@
+2016-10-26 - 1.13.0
+-------------------
+* Property `rmrevin\yii\minify\View::$compress_output` is now deprecated. User `rmrevin\yii\minify\View::$minifyOutput`.
+* Enhancement #44: property `rmrevin\yii\minify\View::$enableMinify` now affects the output minify.
+* Update readme.
+
 2016-08-21 - 1.12.2
 -------------------
 * Added missed asset manager `appendTimestamp` param.

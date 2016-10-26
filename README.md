@@ -22,14 +22,28 @@ Support
 
 Installation
 ------------
+
+The preferred way to install this extension is through [composer](https://getcomposer.org/).
+
+Either run
+
 ```bash
-composer require "rmrevin/yii2-minify-view:~1.12"
+composer require "rmrevin/yii2-minify-view:~1.13"
 ```
+
+or add
+
+```
+"rmrevin/yii2-minify-view": "~2.13",
+```
+
+to the `require` section of your `composer.json` file.
 
 Configure
 ---------
 ```php
-<?
+<?php
+
 return [
 	// ...
 	'components' => [
@@ -37,21 +51,21 @@ return [
 		'view' => [
 			'class' => '\rmrevin\yii\minify\View',
 			'enableMinify' => !YII_DEBUG,
+			'concatCss' => true, // concatenate css
+			'minifyCss' => true, // minificate css
+			'concatJs' => true, // concatenate js
+			'minifyJs' => true, // minificate js
+			'minifyOutput' => true, // minificate result html page
 			'web_path' => '@web', // path alias to web base
 			'base_path' => '@webroot', // path alias to web base
 			'minify_path' => '@webroot/minify', // path alias to save minify result
 			'js_position' => [ \yii\web\View::POS_END ], // positions of js files to be minified
 			'force_charset' => 'UTF-8', // charset forcibly assign, otherwise will use all of the files found charset
 			'expand_imports' => true, // whether to change @import on content
-			'compress_output' => true, // compress result html page
 			'compress_options' => ['extra' => true], // options for compress
-			'concatCss' => true, // concatenate css
-			'minifyCss' => true, // minificate css
-			'concatJs' => true, // concatenate js
-			'minifyJs' => true, // minificate js
 			'excludeBundles' => [
 			    \dev\hellowrld\AssetBundle::class, // exclude this bundle from minification
-            ],
+			],
 		]
 	]
 ];
