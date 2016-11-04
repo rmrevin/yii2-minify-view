@@ -34,7 +34,7 @@ composer require "rmrevin/yii2-minify-view:~1.13"
 or add
 
 ```
-"rmrevin/yii2-minify-view": "~2.13",
+"rmrevin/yii2-minify-view": "~1.13",
 ```
 
 to the `require` section of your `composer.json` file.
