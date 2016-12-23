@@ -28,13 +28,13 @@ The preferred way to install this extension is through [composer](https://getcom
 Either run
 
 ```bash
-composer require "rmrevin/yii2-minify-view:~1.13"
+composer require "rmrevin/yii2-minify-view:~1.14"
 ```
 
 or add
 
 ```
-"rmrevin/yii2-minify-view": "~1.13",
+"rmrevin/yii2-minify-view": "~1.14",
 ```
 
 to the `require` section of your `composer.json` file.
@@ -65,6 +65,7 @@ return [
 			'compressOptions' => ['extra' => true], // options for compress
 			'excludeFiles' => [
             	'jquery.js', // exclude this file from minification
+            	'app-[^.].js', // you may use regexp
             ],
             'excludeBundles' => [
             	\dev\helloworld\AssetBundle::class, // exclude this bundle from minification

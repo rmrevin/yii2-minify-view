@@ -1,3 +1,8 @@
+2016-12-23 - 1.14.1
+-------------------
+* Improved mechanism exclude files from minification.
+* Update readme.
+
 2016-12-23 - 1.14.0
 -------------------
 * Improved mechanism exclude files from minification.

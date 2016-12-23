@@ -98,7 +98,20 @@ abstract class MinifyComponent
      */
     protected function isExcludedFile($file)
     {
-        return in_array(basename($file), $this->view->excludeFiles, true);
+        $result = false;
+
+        if (!empty($this->view->excludeFiles)) {
+            foreach ((array)$this->view->excludeFiles as $excludedFile) {
+                $reg = sprintf('!%s$!i', $excludedFile);
+
+                if (preg_match($reg, $file)) {
+                    $result = true;
+                    break;
+                }
+            }
+        }
+
+        return $result;
     }
 
     /**
