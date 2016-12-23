@@ -1,3 +1,9 @@
+2016-12-23 - 1.14.0
+-------------------
+* Improved mechanism exclude files from minification.
+* Refactoring.
+* Update readme.
+
 2016-10-26 - 1.13.0
 -------------------
 * Property `rmrevin\yii\minify\View::$compress_output` is now deprecated. User `rmrevin\yii\minify\View::$minifyOutput`.

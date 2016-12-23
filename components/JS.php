@@ -22,7 +22,7 @@ class JS extends MinifyComponent
 
         if (!empty($jsFiles)) {
             foreach ($jsFiles as $position => $files) {
-                if (false === in_array($position, $this->view->js_position, true)) {
+                if (false === in_array($position, $this->view->jsPosition, true)) {
                     $this->view->jsFiles[$position] = [];
 
                     foreach ($files as $file => $html) {
@@ -67,7 +67,7 @@ class JS extends MinifyComponent
      */
     protected function process($position, $files)
     {
-        $resultFile = sprintf('%s/%s.js', $this->view->minify_path, $this->_getSummaryFilesHash($files));
+        $resultFile = sprintf('%s/%s.js', $this->view->minifyPath, $this->_getSummaryFilesHash($files));
 
         if (!file_exists($resultFile)) {
             $js = '';
@@ -97,8 +97,8 @@ class JS extends MinifyComponent
 
             file_put_contents($resultFile, $js);
 
-            if (false !== $this->view->file_mode) {
-                @chmod($resultFile, $this->view->file_mode);
+            if (false !== $this->view->fileMode) {
+                @chmod($resultFile, $this->view->fileMode);
             }
         }
 
