@@ -20,9 +20,12 @@ class JS extends MinifyComponent
     {
         $jsFiles = $this->view->jsFiles;
 
+        $jsPosition = $this->view->jsPosition;
+        $jsOptions = $this->view->jsOptions;
+
         if (!empty($jsFiles)) {
             foreach ($jsFiles as $position => $files) {
-                if (false === in_array($position, $this->view->jsPosition, true)) {
+                if (false === in_array($position, $jsPosition, true)) {
                     $this->view->jsFiles[$position] = [];
 
                     foreach ($files as $file => $html) {
@@ -38,11 +41,11 @@ class JS extends MinifyComponent
                             if ($this->view->concatJs) {
                                 $toMinify[$file] = $html;
                             } else {
-                                $this->process($position, [$file => $html]);
+                                $this->process($position, $jsOptions, [$file => $html]);
                             }
                         } else {
                             if (!empty($toMinify)) {
-                                $this->process($position, $toMinify);
+                                $this->process($position, $jsOptions, $toMinify);
 
                                 $toMinify = [];
                             }
@@ -52,7 +55,7 @@ class JS extends MinifyComponent
                     }
 
                     if (!empty($toMinify)) {
-                        $this->process($position, $toMinify);
+                        $this->process($position, $jsOptions, $toMinify);
                     }
 
                     unset($toMinify);
@@ -63,9 +66,10 @@ class JS extends MinifyComponent
 
     /**
      * @param integer $position
+     * @param array $options
      * @param array $files
      */
-    protected function process($position, $files)
+    protected function process($position, $options, $files)
     {
         $resultFile = sprintf('%s/%s.js', $this->view->minifyPath, $this->_getSummaryFilesHash($files));
 
@@ -104,7 +108,7 @@ class JS extends MinifyComponent
 
         $file = $this->prepareResultFile($resultFile);
 
-        $this->view->jsFiles[$position][$file] = Html::jsFile($file);
+        $this->view->jsFiles[$position][$file] = Html::jsFile($file, $options);
     }
 
     /**

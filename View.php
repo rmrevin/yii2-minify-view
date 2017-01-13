@@ -104,6 +104,11 @@ class View extends \yii\web\View
     public $jsPosition;
 
     /**
+     * @var array options of minified js files
+     */
+    public $jsOptions = [];
+
+    /**
      * @deprecated
      * @var bool|string charset forcibly assign, otherwise will use all of the files found charset
      */
