@@ -1,3 +1,7 @@
+2017-01-19 - 1.14.4
+-------------------
+* Changed the regular expression when checking the excluded files.
+
 2017-01-19 - 1.14.3
 -------------------
 * Disable ssl verification in expand css imports.

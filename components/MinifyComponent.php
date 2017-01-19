@@ -102,7 +102,7 @@ abstract class MinifyComponent
 
         if (!empty($this->view->excludeFiles)) {
             foreach ((array)$this->view->excludeFiles as $excludedFile) {
-                $reg = sprintf('!%s$!i', $excludedFile);
+                $reg = sprintf('!%s!i', $excludedFile);
 
                 if (preg_match($reg, $file)) {
                     $result = true;
