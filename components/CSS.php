@@ -236,7 +236,14 @@ class CSS extends MinifyComponent
                     $url = \Yii::getAlias($this->view->basePath . $url);
                 }
 
-                $result = file_get_contents($url);
+                $context = [
+                    'ssl' => [
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                    ],
+                ];
+
+                $result = file_get_contents($url, null, stream_context_create($context));
             }
         }
 

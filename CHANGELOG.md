@@ -1,3 +1,7 @@
+2017-01-19 - 1.14.3
+-------------------
+* Disable ssl verification in expand css imports.
+
 2017-01-19 - 1.14.2
 -------------------
 * Add `jsOptions` option.
