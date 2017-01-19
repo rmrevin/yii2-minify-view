@@ -1,3 +1,7 @@
+2017-01-19 - 1.14.2
+-------------------
+* Add `jsOptions` option.
+
 2016-12-23 - 1.14.1
 -------------------
 * Improved mechanism exclude files from minification.
