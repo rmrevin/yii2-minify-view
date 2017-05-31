@@ -1,3 +1,7 @@
+2017-05-31 - 1.15.0
+-------------------
+* Update minify package to version 3
+
 2017-01-19 - 1.14.4
 -------------------
 * Changed the regular expression when checking the excluded files.
