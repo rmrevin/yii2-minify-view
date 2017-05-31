@@ -1,6 +1,8 @@
 Yii 2 Minify View Component
 ===========================
 
+[![Join the chat at https://gitter.im/rmrevin/yii2-minify-view](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/rmrevin/yii2-minify-view?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 The main feature of this component - concatenate and compress files 
 connected through "AssetBundle".
 
