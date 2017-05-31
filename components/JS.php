@@ -95,7 +95,7 @@ class JS extends MinifyComponent
             $this->removeJsComments($js);
 
             if ($this->view->minifyJs) {
-                $js = (new \JSMin($js))
+                $js = (new \JSMin\JSMin($js))
                     ->min();
             }
 
