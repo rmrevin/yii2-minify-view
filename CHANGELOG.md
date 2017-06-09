@@ -1,3 +1,7 @@
+2017-06-09 - 1.15.1
+-------------------
+* Update cssmin package to version 4
+
 2017-05-31 - 1.15.0
 -------------------
 * Update minify package to version 3
