@@ -7,7 +7,7 @@
 
 namespace rmrevin\yii\minify\components;
 
-use CSSmin;
+use tubalmartin\CssMin\Minifier as CSSmin;
 use yii\helpers\Html;
 
 /**
