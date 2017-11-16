@@ -97,6 +97,10 @@ class CSS extends MinifyComponent
                     $content = strtr($content, $result);
                 }
 
+                if (preg_match('/\bmedia="print"/', $html, $m)) {
+                    $content = '@media print {' . $content . '}';
+                }
+                
                 $css .= $content;
             }
 
