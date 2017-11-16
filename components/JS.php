@@ -113,13 +113,13 @@ class JS extends MinifyComponent
     }
 
     /**
-     * @todo
+     * Remove JS comments
      * @param string $code
      */
     protected function removeJsComments(&$code)
     {
         if (true === $this->view->removeComments) {
-            //$code = preg_replace('', '', $code);
+            $code = preg_replace('/(?:(?:\/\*(?:[^*]|(?:\*+[^*\/]))*\*+\/)|(?:(?<!\:|\\\|\'|\")\/\/.*))/', '', $code);
         }
     }
 }
