@@ -97,7 +97,7 @@ class CSS extends MinifyComponent
                     $content = strtr($content, $result);
                 }
                 
-                self::convertMediaTypeAttributeToMediaQuery($html, $content);
+                $content = self::convertMediaTypeAttributeToMediaQuery($html, $content);
 
                 $css .= $content;
             }
