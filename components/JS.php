@@ -93,7 +93,7 @@ class JS extends MinifyComponent
                 $js .= $content;
             }
 
-            if (true === $this->view->removeComments) {
+            if ($this->view->removeComments) {
                 $this->removeJsComments($js);
             }
 
