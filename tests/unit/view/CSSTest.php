@@ -1,6 +1,6 @@
 <?php
 /**
- * JsMinifyTest.php
+ * CSSTest.php
  * @author Dylan Ferris
  * @link https://github.com/acerix
  */
