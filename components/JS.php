@@ -93,7 +93,9 @@ class JS extends MinifyComponent
                 $js .= $content;
             }
 
-            $this->removeJsComments($js);
+            if (true === $this->view->removeComments) {
+                $this->removeJsComments($js);
+            }
 
             if ($this->view->minifyJs) {
                 $js = (new JSMin($js))
@@ -115,11 +117,10 @@ class JS extends MinifyComponent
     /**
      * Remove JS comments
      * @param string $code
+     * @return string Code without comments
      */
-    protected function removeJsComments(&$code)
+    static function removeJsComments($code)
     {
-        if (true === $this->view->removeComments) {
-            $code = preg_replace('/(?:(?:\/\*(?:[^*]|(?:\*+[^*\/]))*\*+\/)|(?:(?<!\:|\\\|\'|\")\/\/.*))/', '', $code);
-        }
+        return preg_replace('/(?:(?:\/\*(?:[^*]|(?:\*+[^*\/]))*\*+\/)|(?:(?<!\:|\\\|\'|\")\/\/.*))/', '', $code);
     }
 }
