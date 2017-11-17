@@ -119,7 +119,7 @@ class JS extends MinifyComponent
      * @param string $code
      * @return string Code without comments
      */
-    static function removeJsComments($code)
+    public static function removeJsComments($code)
     {
         return preg_replace('/(?:(?:\/\*(?:[^*]|(?:\*+[^*\/]))*\*+\/)|(?:(?<!\:|\\\|\'|\")\/\/.*))/', '', $code);
     }
