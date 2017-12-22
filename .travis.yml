@@ -16,12 +16,12 @@ cache:
     - vendor
 
 install:
-  - export PATH="$HOME/bin:$PATH"
+  - export PATH="$HOME/.composer/vendor/bin:$PATH"
   - travis_retry composer self-update && composer --version
   - travis_retry composer install --prefer-dist --no-interaction
 
 script:
-  - ./bin/phpunit --verbose --coverage-clover=coverage/coverage.clover
+  - phpunit --verbose --coverage-clover=coverage/coverage.clover
 
 after_script:
   - travis_retry wget https://scrutinizer-ci.com/ocular.phar

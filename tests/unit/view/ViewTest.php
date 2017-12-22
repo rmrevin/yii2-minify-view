@@ -189,7 +189,7 @@ div.test{border:1px solid #000;width:100%;height:100%}', $content);
             }
         }
 
-        $view->endPage(false);
+        $view->endPage();
     }
 
     public function testFiletimeCheckAlgorithm()

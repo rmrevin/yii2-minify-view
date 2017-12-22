@@ -27,19 +27,10 @@
     "yiisoft/yii2": "^2.0",
     "mrclay/minify": "^3.0"
   },
-  "require-dev": {
-    "phpunit/phpunit": "~5.5.0",
-    "phpunit/php-token-stream": "^1.4",
-    "doctrine/instantiator": "~1.0.0",
-    "phpdocumentor/reflection-docblock": "^3.0"
-  },
   "autoload": {
     "psr-4": {
       "rmrevin\\yii\\minify\\": ""
     }
-  },
-  "config": {
-    "bin-dir": "bin"
   },
   "repositories": [
     {
