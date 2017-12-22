@@ -96,6 +96,8 @@ class CSS extends MinifyComponent
 
                     $content = strtr($content, $result);
                 }
+                
+                $content = self::convertMediaTypeAttributeToMediaQuery($html, $content);
 
                 $css .= $content;
             }
@@ -249,5 +251,21 @@ class CSS extends MinifyComponent
         }
 
         return $result;
+    }
+    
+    /**
+     * If the <link> tag has a media="type" attribute, wrap the content in an equivalent media query
+     * @param string $tag_html HTML of the link tag
+     * @param string $content CSS content
+     * @return string $content CSS content wrapped with media query, if applicable
+     */
+    public static function convertMediaTypeAttributeToMediaQuery($html, $content)
+    {
+        if (preg_match('/\bmedia=(["\'])([^"\']+)\1/i', $html, $m)) {
+            if ($m[2] !== 'all') {
+                $content = '@media '.$m[2].'{' . $content . '}';
+            }
+        }        
+        return $content;
     }
 }
