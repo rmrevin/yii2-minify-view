@@ -1,20 +1,21 @@
 build:
     environment:
         php:
-            version: 5.5.12
+            version: 7.1
     dependencies:
         before:
             - sudo composer self-update && composer --version
-            - composer global require "fxp/composer-asset-plugin:~1.0"
     tests:
         override:
             - phpunit
 imports:
     - php
+
 checks:
     php:
         code_rating: true
         duplication: true
+
 tools:
     php_sim: false
     php_cpd: false
@@ -23,6 +24,7 @@ tools:
     php_changetracking: true
     external_code_coverage:
         timeout: 2100 # Timeout in seconds.
+
 filter:
     excluded_paths:
         - tests/*
