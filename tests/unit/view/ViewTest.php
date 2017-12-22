@@ -22,7 +22,7 @@ class ViewTest extends minify\tests\unit\TestCase
     {
         $this->assertInstanceOf('rmrevin\yii\minify\View', $this->getView());
 
-        $this->assertEquals('CP1251', $this->getView()->force_charset);
+        $this->assertEquals('CP1251', $this->getView()->forceCharset);
     }
 
     public function testEmptyBundle()
@@ -35,11 +35,11 @@ class ViewTest extends minify\tests\unit\TestCase
         echo '<html>This is test page</html>';
 
         $view->endBody();
-        $view->endPage(false);
+        $view->endPage();
 
-        $files = FileHelper::findFiles($this->getView()->minify_path);
+        $files = FileHelper::findFiles($this->getView()->minifyPath);
 
-        $this->assertEquals(0, count($files));
+        $this->assertCount(0, $files);
 
         foreach ($files as $file) {
             $this->assertNotEmpty(file_get_contents($file));
@@ -56,31 +56,71 @@ class ViewTest extends minify\tests\unit\TestCase
         echo '<html>This is test page</html>';
 
         $view->endBody();
-        $view->endPage(false);
+        $view->endPage();
 
-        $files = FileHelper::findFiles($this->getView()->minify_path);
+        $files = FileHelper::findFiles($this->getView()->minifyPath);
 
-        $this->assertEquals(2, count($files));
+        $this->assertCount(2, $files);
 
         foreach ($files as $file) {
             $this->assertNotEmpty(file_get_contents($file));
         }
     }
 
-    public function testAlternativeEndPage()
+    public function testRemoveComments()
     {
         $view = $this->getView();
 
-        $view->expand_imports = false;
-        $view->force_charset = false;
-
-        minify\tests\unit\data\TestAssetBundle::register($this->getView());
+        minify\tests\unit\data\CommentsAssetBundle::register($view);
 
         ob_start();
-        echo '<html>This is test page</html>';
+        echo '<html>This is test page versioning</html>';
 
         $view->endBody();
-        $view->endPage(false);
+
+        $view->endPage();
+
+        $files = FileHelper::findFiles($this->getView()->minifyPath);
+
+        foreach ($files as $file) {
+            $content = file_get_contents($file);
+
+            if (false !== mb_strpos($file, '.js')) {
+                $this->assertEquals("this1
+this2
+this3
+this4
+this5 http:id=id.replace(/\\//g,'');HTTP+'//www.googleadservices.com/pagead/conversion';", $content);
+            }
+
+            if (false !== mb_strpos($file, '.css')) {
+                $this->assertEquals('@charset "CP1251";
+div.test{border:1px solid #000;width:100%;height:100%}', $content);
+            }
+        }
+    }
+
+    public function testMediaPrint()
+    {
+        $view = $this->getView();
+
+        minify\tests\unit\data\PrintAssetBundle::register($view);
+
+        ob_start();
+        echo '<html>This is test page versioning</html>';
+
+        $view->endBody();
+
+        $view->endPage();
+
+        $files = FileHelper::findFiles($this->getView()->minifyPath);
+
+        foreach ($files as $file) {
+            $content = file_get_contents($file);
+
+            $this->assertEquals('@charset "CP1251";
+@media print{.print-hide{display:none}.bad>div>.formatting{color:gray}}', $content);
+        }
     }
 
     public function testMainWithVersion()
@@ -90,7 +130,7 @@ class ViewTest extends minify\tests\unit\TestCase
 
         $this->assertInstanceOf(minify\View::className(), $view);
 
-        $this->assertEquals('CP1251', $view->force_charset);
+        $this->assertEquals('CP1251', $view->forceCharset);
     }
 
     public function testEndPageWithVersion()
@@ -105,14 +145,14 @@ class ViewTest extends minify\tests\unit\TestCase
 
         $view->endBody();
 
-        $this->assertEquals(2, count($view->jsFiles[minify\View::POS_HEAD]));
-        $this->assertEquals(1, count($view->jsFiles[minify\View::POS_READY]));
+        $this->assertCount(2, $view->jsFiles[minify\View::POS_HEAD]);
+        $this->assertCount(1, $view->jsFiles[minify\View::POS_READY]);
 
-        $view->endPage(false);
+        $view->endPage();
 
-        $files = FileHelper::findFiles($view->minify_path);
+        $files = FileHelper::findFiles($view->minifyPath);
 
-        $this->assertEquals(2, count($files));
+        $this->assertCount(2, $files);
 
         foreach ($files as $file) {
             $this->assertNotEmpty(file_get_contents($file));
@@ -124,8 +164,8 @@ class ViewTest extends minify\tests\unit\TestCase
         $view = $this->getView();
         $view->assetManager->appendTimestamp = true;
 
-        $view->expand_imports = false;
-        $view->force_charset = false;
+        $view->expandImports = false;
+        $view->forceCharset = false;
 
         minify\tests\unit\data\TestAssetBundle::register($view);
 
@@ -134,18 +174,18 @@ class ViewTest extends minify\tests\unit\TestCase
 
         $view->endBody();
 
-        $this->assertEquals(2, count($view->jsFiles[minify\View::POS_HEAD]));
-        $this->assertEquals(1, count($view->jsFiles[minify\View::POS_READY]));
+        $this->assertCount(2, $view->jsFiles[minify\View::POS_HEAD]);
+        $this->assertCount(1, $view->jsFiles[minify\View::POS_READY]);
 
-        foreach ($view->jsFiles[minify\View::POS_HEAD] as $file => $html) {
+        foreach ((array)$view->jsFiles[minify\View::POS_HEAD] as $file => $html) {
             if (Url::isRelative($file)) {
-                $this->assertTrue(strpos($file, '?v=') !== false);
+                $this->assertNotFalse(mb_strpos($file, '?v='));
             }
         }
 
-        foreach ($view->jsFiles[minify\View::POS_READY] as $file => $html) {
+        foreach ((array)$view->jsFiles[minify\View::POS_READY] as $file => $html) {
             if (Url::isRelative($file)) {
-                $this->assertTrue(strpos($file, '?v=') !== false);
+                $this->assertNotFalse(mb_strpos($file, '?v='));
             }
         }
 
@@ -164,10 +204,10 @@ class ViewTest extends minify\tests\unit\TestCase
 
         $view->endBody();
 
-        $this->assertEquals(2, count($view->jsFiles[minify\View::POS_HEAD]));
-        $this->assertEquals(1, count($view->jsFiles[minify\View::POS_READY]));
+        $this->assertCount(2, $view->jsFiles[minify\View::POS_HEAD]);
+        $this->assertCount(1, $view->jsFiles[minify\View::POS_READY]);
 
-        $view->endPage(false);
+        $view->endPage();
     }
 
     public function testExcludeBundles()
@@ -187,10 +227,10 @@ class ViewTest extends minify\tests\unit\TestCase
 
         $view->endBody();
 
-        $this->assertEquals(2, count($view->cssFiles));
-        $this->assertEquals(3, count($view->jsFiles));
+        $this->assertCount(2, $view->cssFiles);
+        $this->assertCount(3, $view->jsFiles);
 
-        $view->endPage(false);
+        $view->endPage();
     }
 
     public function testExcludeFiles()
@@ -208,10 +248,10 @@ class ViewTest extends minify\tests\unit\TestCase
 
         $view->endBody();
 
-        $this->assertEquals(2, count($view->cssFiles));
-        $this->assertEquals(3, count($view->jsFiles));
+        $this->assertCount(2, $view->cssFiles);
+        $this->assertCount(3, $view->jsFiles);
 
-        $view->endPage(false);
+        $view->endPage();
     }
 
     /**

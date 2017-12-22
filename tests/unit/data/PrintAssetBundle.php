@@ -1,6 +1,6 @@
 <?php
 /**
- * DependAssetBundle.php
+ * PrintAssetBundle.php
  * @author Revin Roman
  * @link https://rmrevin.ru
  */
@@ -8,29 +8,20 @@
 namespace rmrevin\yii\minify\tests\unit\data;
 
 use yii\web\AssetBundle;
-use yii\web\View;
 
 /**
- * Class DependAssetBundle
+ * Class TestAssetBundle
  * @package rmrevin\yii\minify\tests\unit\data
  */
-class DependAssetBundle extends AssetBundle
+class PrintAssetBundle extends AssetBundle
 {
 
-    public $js = [
-        'depend.js',
-    ];
-
     public $css = [
-        'depend.css',
+        'print.css',
     ];
 
-    public $jsOptions = [
-        'position' => View::POS_HEAD,
-    ];
-
-    public $depends = [
-        'rmrevin\yii\minify\tests\unit\data\JQueryAssetBundle',
+    public $cssOptions = [
+        'media' => 'print',
     ];
 
     public function init()

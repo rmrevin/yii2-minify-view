@@ -1,8 +1,7 @@
 <?php
 /**
- * DependAssetBundle.php
- * @author Revin Roman
- * @link https://rmrevin.ru
+ * CommentsAssetBundle.php.
+ * @created 2017-12-22
  */
 
 namespace rmrevin\yii\minify\tests\unit\data;
@@ -11,26 +10,22 @@ use yii\web\AssetBundle;
 use yii\web\View;
 
 /**
- * Class DependAssetBundle
+ * Class CommentsAssetBundle
  * @package rmrevin\yii\minify\tests\unit\data
  */
-class DependAssetBundle extends AssetBundle
+class CommentsAssetBundle extends AssetBundle
 {
 
     public $js = [
-        'depend.js',
+        'comments.js',
     ];
 
     public $css = [
-        'depend.css',
+        'comments.css',
     ];
 
     public $jsOptions = [
-        'position' => View::POS_HEAD,
-    ];
-
-    public $depends = [
-        'rmrevin\yii\minify\tests\unit\data\JQueryAssetBundle',
+        'position' => View::POS_END,
     ];
 
     public function init()

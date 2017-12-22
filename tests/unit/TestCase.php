@@ -15,24 +15,34 @@ use yii\helpers\FileHelper;
  * @package rmrevin\yii\fontawesome\tests\unit
  * This is the base class for all yii framework unit tests.
  */
-abstract class TestCase extends \PHPUnit_Framework_TestCase
+abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
 
+    /**
+     * @var array|null
+     */
     public static $params;
 
+    /**
+     * @throws \yii\base\Exception
+     */
     protected function setUp()
     {
         parent::setUp();
         FileHelper::createDirectory($this->getParam('components')['assetManager']['basePath']);
         file_put_contents(__DIR__ . '/runtime/compress.html', '');
-        $this->mock_application();
+        $this->mockApplication();
     }
 
+    /**
+     * @throws \yii\base\ErrorException
+     */
     protected function tearDown()
     {
-//        unlink(__DIR__ . '/runtime/compress.html');
-        FileHelper::removeDirectory($this->getParam('components')['view']['minify_path']);
+        unlink(__DIR__ . '/runtime/compress.html');
+        FileHelper::removeDirectory($this->getParam('components')['view']['minifyPath']);
         FileHelper::removeDirectory($this->getParam('components')['assetManager']['basePath']);
+        FileHelper::removeDirectory(__DIR__ . '/runtime/cache/');
         $this->destroyApplication();
         parent::tearDown();
     }
@@ -42,7 +52,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * The application will be destroyed on tearDown() automatically.
      * @param string $appClass
      */
-    protected function mock_application($appClass = '\yii\console\Application')
+    protected function mockApplication($appClass = 'yii\console\Application')
     {
         // for update self::$params
         $this->getParam('id');
@@ -68,10 +78,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     public function getParam($name, $default = null)
     {
         if (self::$params === null) {
-            self::$params = require(__DIR__ . '/config/main.php');
-            $main_local = __DIR__ . '/config/main-local.php';
-            if (file_exists($main_local)) {
-                self::$params = ArrayHelper::merge(self::$params, require($main_local));
+            self::$params = require __DIR__ . '/config/main.php';
+
+            $mainLocal = __DIR__ . '/config/main-local.php';
+
+            if (file_exists($mainLocal)) {
+                self::$params = ArrayHelper::merge(self::$params, require $mainLocal);
             }
         }
 

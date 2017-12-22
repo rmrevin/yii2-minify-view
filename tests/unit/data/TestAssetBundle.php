@@ -7,11 +7,14 @@
 
 namespace rmrevin\yii\minify\tests\unit\data;
 
+use yii\web\AssetBundle;
+use yii\web\View;
+
 /**
  * Class TestAssetBundle
  * @package rmrevin\yii\minify\tests\unit\data
  */
-class TestAssetBundle extends \yii\web\AssetBundle
+class TestAssetBundle extends AssetBundle
 {
 
     public $js = [
@@ -23,7 +26,11 @@ class TestAssetBundle extends \yii\web\AssetBundle
     ];
 
     public $jsOptions = [
-        'position' => \rmrevin\yii\minify\View::POS_READY,
+        'position' => View::POS_READY,
+    ];
+
+    public $cssOptions = [
+        'media' => 'all',
     ];
 
     public $depends = [

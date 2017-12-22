@@ -7,11 +7,13 @@
 
 namespace rmrevin\yii\minify\tests\unit\data;
 
+use yii\web\AssetBundle;
+
 /**
  * Class ExcludedAssetBundle
  * @package rmrevin\yii\minify\tests\unit\data
  */
-class ExcludedAssetBundle extends \yii\web\AssetBundle
+class ExcludedAssetBundle extends AssetBundle
 {
 
     public $css = [
@@ -25,5 +27,7 @@ class ExcludedAssetBundle extends \yii\web\AssetBundle
     public function init()
     {
         $this->sourcePath = __DIR__ . '/source';
+
+        parent::init();
     }
 }

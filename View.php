@@ -27,7 +27,7 @@ class View extends \yii\web\View
     /**
      * @var string filemtime or sha1
      */
-    public $fileCheckAlgorithm = 'sha1';
+    public $fileCheckAlgorithm = 'hash';
 
     /**
      * @var bool
@@ -55,53 +55,24 @@ class View extends \yii\web\View
     public $minifyOutput = false;
 
     /**
-     * @var bool
-     */
-    public $removeComments = true;
-
-    /**
-     * @deprecated
      * @var string path alias to web base (in url)
      */
-    public $web_path = '@web';
-
-    /**
-     * @var string path alias to web base (in url)
-     */
-    public $webPath;
-
-    /**
-     * @deprecated
-     * @var string path alias to web base (absolute)
-     */
-    public $base_path = '@webroot';
+    public $webPath = '@web';
 
     /**
      * @var string path alias to web base (absolute)
      */
-    public $basePath;
-
-    /**
-     * @deprecated
-     * @var string path alias to save minify result
-     */
-    public $minify_path = '@webroot/minify';
+    public $basePath = '@webroot';
 
     /**
      * @var string path alias to save minify result
      */
-    public $minifyPath;
-
-    /**
-     * @deprecated
-     * @var array positions of js files to be minified
-     */
-    public $js_position = [self::POS_END, self::POS_HEAD];
+    public $minifyPath = '@webroot/minify';
 
     /**
      * @var array positions of js files to be minified
      */
-    public $jsPosition;
+    public $jsPosition = [self::POS_END, self::POS_HEAD];
 
     /**
      * @var array options of minified js files
@@ -109,48 +80,19 @@ class View extends \yii\web\View
     public $jsOptions = [];
 
     /**
-     * @deprecated
      * @var bool|string charset forcibly assign, otherwise will use all of the files found charset
      */
-    public $force_charset = false;
-
-    /**
-     * @var bool|string charset forcibly assign, otherwise will use all of the files found charset
-     */
-    public $forceCharset;
-
-    /**
-     * @deprecated
-     * @var bool whether to change @import on content
-     */
-    public $expand_imports = true;
+    public $forceCharset = false;
 
     /**
      * @var bool whether to change @import on content
      */
-    public $expandImports;
-
-    /**
-     * @deprecated
-     * @var int
-     */
-    public $css_linebreak_pos = 2048;
-
-    /**
-     * @var int
-     */
-    public $cssLinebreakPos;
-
-    /**
-     * @deprecated
-     * @var int|bool chmod of minified file. If false chmod not set
-     */
-    public $file_mode = 0664;
+    public $expandImports = true;
 
     /**
      * @var int|bool chmod of minified file. If false chmod not set
      */
-    public $fileMode;
+    public $fileMode = 0664;
 
     /**
      * @var array schemes that will be ignored during normalization url
@@ -158,25 +100,18 @@ class View extends \yii\web\View
     public $schemas = ['//', 'http://', 'https://', 'ftp://'];
 
     /**
-     * @deprecated
-     * @var bool do I need to compress the result html page.
-     */
-    public $compress_output = false;
-
-    /**
-     * @deprecated
      * @var array options for compressing output result
-     *   * extra - use more compact algorithm
-     *   * no-comments - cut all the html comments
+     *
+     * 'cssMinifier' : (optional) callback function to process content of STYLE
+     * elements.
+     *
+     * 'jsMinifier' : (optional) callback function to process content of SCRIPT
+     * elements. Note: the type attribute is ignored.
+     *
+     * 'xhtml' : (optional boolean) should content be treated as XHTML1.0? If
+     * unset, minify will sniff for an XHTML doctype.
      */
-    public $compress_options = ['extra' => true];
-
-    /**
-     * @var array options for compressing output result
-     *   * extra - use more compact algorithm
-     *   * no-comments - cut all the html comments
-     */
-    public $compressOptions;
+    public $compressOptions = [];
 
     /**
      * @var array
@@ -189,70 +124,108 @@ class View extends \yii\web\View
     public $excludeFiles = [];
 
     /**
+     * @var array
+     */
+    public $hashAlgos = ['md5', 'tiger160,3', 'sha1', 'tiger192,4'];
+
+    /**
+     * @var null|string
+     */
+    public $currentHashAlgo;
+
+    /**
+     * @var \yii\caching\CacheInterface|string|null
+     */
+    public $cache;
+
+    /**
      * @throws \rmrevin\yii\minify\Exception
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\base\InvalidParamException
+     * @throws \yii\base\Exception
      */
     public function init()
     {
         parent::init();
 
-        $this->webPath = empty($this->webPath) ? $this->web_path : $this->webPath;
-        $this->basePath = empty($this->basePath) ? $this->base_path : $this->basePath;
-        $this->minifyPath = empty($this->minifyPath) ? $this->minify_path : $this->minifyPath;
-        $this->jsPosition = empty($this->jsPosition) ? $this->js_position : $this->jsPosition;
-        $this->forceCharset = empty($this->forceCharset) ? $this->force_charset : $this->forceCharset;
-        $this->expandImports = empty($this->expandImports) ? $this->expand_imports : $this->expandImports;
-        $this->cssLinebreakPos = empty($this->cssLinebreakPos) ? $this->css_linebreak_pos : $this->cssLinebreakPos;
-        $this->fileMode = empty($this->fileMode) ? $this->file_mode : $this->fileMode;
-        $this->compressOptions = empty($this->compressOptions) ? $this->compress_options : $this->compressOptions;
+        $this->basePath = \Yii::getAlias($this->basePath);
+        $this->webPath = \Yii::getAlias($this->webPath);
+        $this->minifyPath = \Yii::getAlias($this->minifyPath);
 
-        $excludeBundles = $this->excludeBundles;
-        if (!empty($excludeBundles)) {
-            foreach ($excludeBundles as $bundle) {
-                if (!class_exists($bundle)) {
-                    continue;
-                }
+        if (null !== $this->cache && is_string($this->cache)) {
+            $this->cache = \Yii::$app->get($this->cache);
+        }
 
-                /** @var AssetBundle $Bundle */
-                $Bundle = new $bundle;
+        foreach ($this->excludeBundles as $bundleClass) {
+            if (!class_exists($bundleClass)) {
+                continue;
+            }
 
-                if (!empty($Bundle->css)) {
-                    $this->excludeFiles = array_merge($this->excludeFiles, $Bundle->css);
-                }
+            /** @var AssetBundle $Bundle */
+            $Bundle = new $bundleClass;
 
-                if (!empty($Bundle->js)) {
-                    $this->excludeFiles = array_merge($this->excludeFiles, $Bundle->js);
-                }
+            if (!empty($Bundle->css)) {
+                $this->excludeFiles = array_merge($this->excludeFiles, $Bundle->css);
+            }
+
+            if (!empty($Bundle->js)) {
+                $this->excludeFiles = array_merge($this->excludeFiles, $Bundle->js);
             }
         }
 
-        $minify_path = $this->minifyPath = (string)\Yii::getAlias($this->minifyPath);
-        if (!file_exists($minify_path)) {
-            FileHelper::createDirectory($minify_path);
+        $hashAlgos = hash_algos();
+
+        foreach ($this->hashAlgos as $alog) {
+            if (!in_array($alog, $hashAlgos, true)) {
+                continue;
+            }
+
+            $this->currentHashAlgo = $alog;
+            break;
         }
 
-        if (!is_readable($minify_path)) {
+        if (null === $this->currentHashAlgo) {
+            throw new Exception('Unable to determine the hash algorithm.');
+        }
+
+        $minifyPath = $this->minifyPath;
+
+        if (!file_exists($minifyPath)) {
+            FileHelper::createDirectory($minifyPath);
+        }
+
+        if (!is_readable($minifyPath)) {
             throw new Exception('Directory for compressed assets is not readable.');
         }
 
-        if (!is_writable($minify_path)) {
+        if (!is_writable($minifyPath)) {
             throw new Exception('Directory for compressed assets is not writable.');
         }
 
-        if (true === $this->enableMinify && (true === $this->minifyOutput || true === $this->compress_output)) {
-            \Yii::$app->response->on(Response::EVENT_BEFORE_SEND, function (Event $Event) {
-                /** @var Response $Response */
-                $Response = $Event->sender;
+        if (true === $this->enableMinify && true === $this->minifyOutput) {
+            \Yii::$app->response->on(Response::EVENT_BEFORE_SEND, [$this, 'compressOutput']);
+        }
+    }
 
-                if ($Response->format === Response::FORMAT_HTML) {
-                    if (!empty($Response->data)) {
-                        $Response->data = HtmlCompressor::compress($Response->data, $this->compressOptions);
-                    }
+    /**
+     * @param \yii\base\Event $event
+     * @codeCoverageIgnore
+     */
+    public function compressOutput(Event $event)
+    {
+        /** @var Response $Response */
+        $Response = $event->sender;
 
-                    if (!empty($Response->content)) {
-                        $Response->content = HtmlCompressor::compress($Response->content, $this->compressOptions);
-                    }
-                }
-            });
+        if (Response::FORMAT_HTML !== $Response->format) {
+            return;
+        }
+
+        if (!empty($Response->data)) {
+            $Response->data = \Minify_HTML::minify($Response->data, $this->compressOptions);
+        }
+
+        if (!empty($Response->content)) {
+            $Response->content = \Minify_HTML::minify($Response->content, $this->compressOptions);
         }
     }
 
@@ -262,6 +235,7 @@ class View extends \yii\web\View
     public function endBody()
     {
         $this->trigger(self::EVENT_END_BODY);
+
         echo self::PH_BODY_END;
 
         foreach (array_keys($this->assetBundles) as $bundle) {

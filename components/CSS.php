@@ -7,7 +7,6 @@
 
 namespace rmrevin\yii\minify\components;
 
-use tubalmartin\CssMin\Minifier as CSSmin;
 use yii\helpers\Html;
 
 /**
@@ -25,23 +24,21 @@ class CSS extends MinifyComponent
 
         $toMinify = [];
 
-        if (!empty($cssFiles)) {
-            foreach ($cssFiles as $file => $html) {
-                if ($this->thisFileNeedMinify($file, $html)) {
-                    if ($this->view->concatCss) {
-                        $toMinify[$file] = $html;
-                    } else {
-                        $this->process([$file => $html]);
-                    }
+        foreach ($cssFiles as $file => $html) {
+            if ($this->thisFileNeedMinify($file, $html)) {
+                if ($this->view->concatCss) {
+                    $toMinify[$file] = $html;
                 } else {
-                    if (!empty($toMinify)) {
-                        $this->process($toMinify);
-
-                        $toMinify = [];
-                    }
-
-                    $this->view->cssFiles[$file] = $html;
+                    $this->process([$file => $html]);
                 }
+            } else {
+                if (!empty($toMinify)) {
+                    $this->process($toMinify);
+
+                    $toMinify = [];
+                }
+
+                $this->view->cssFiles[$file] = $html;
             }
         }
 
@@ -57,12 +54,24 @@ class CSS extends MinifyComponent
      */
     protected function process(array $files)
     {
-        $resultFile = $this->view->minifyPath . DIRECTORY_SEPARATOR . $this->_getSummaryFilesHash($files) . '.css';
+        $minifyPath = $this->view->minifyPath;
+        $hash = $this->_getSummaryFilesHash($files);
+
+        $resultFile = $minifyPath . DIRECTORY_SEPARATOR . $hash . '.css';
 
         if (!file_exists($resultFile)) {
             $css = '';
 
             foreach ($files as $file => $html) {
+                $cacheKey = $this->buildCacheKey($file);
+
+                $content = $this->getFromCache($cacheKey);
+
+                if (false !== $content) {
+                    $css .= $content;
+                    continue;
+                }
+
                 $path = dirname($file);
                 $file = $this->getAbsoluteFilePath($file);
 
@@ -78,9 +87,10 @@ class CSS extends MinifyComponent
 
                 $result = [];
 
-                preg_match_all('|url\(([^)]+)\)|is', $content, $m);
-                if (!empty($m[0])) {
-                    foreach ($m[0] as $k => $v) {
+                preg_match_all('|url\(([^)]+)\)|i', $content, $m);
+
+                if (isset($m[0])) {
+                    foreach ((array)$m[0] as $k => $v) {
                         if (in_array(strpos($m[1][$k], 'data:'), [0, 1], true)) {
                             continue;
                         }
@@ -96,27 +106,27 @@ class CSS extends MinifyComponent
 
                     $content = strtr($content, $result);
                 }
-                
-                $content = self::convertMediaTypeAttributeToMediaQuery($html, $content);
+
+                $this->expandImports($content);
+
+                $this->convertMediaTypeAttributeToMediaQuery($html, $content);
+
+                if ($this->view->minifyCss) {
+                    $content = \Minify_CSSmin::minify($content);
+                }
+
+                $this->saveToCache($cacheKey, $content);
 
                 $css .= $content;
             }
 
-            $this->expandImports($css);
-
-            $this->removeCssComments($css);
-
-            if ($this->view->minifyCss) {
-                $css = (new CSSmin())
-                    ->run($css, $this->view->cssLinebreakPos);
-            }
-
-            $charsets = false !== $this->view->forceCharset
-                ? ('@charset "' . (string)$this->view->forceCharset . '";' . "\n")
-                : $this->collectCharsets($css);
-
+            $charsets = $this->collectCharsets($css);
             $imports = $this->collectImports($css);
             $fonts = $this->collectFonts($css);
+
+            if (false !== $this->view->forceCharset) {
+                $charsets = '@charset "' . (string)$this->view->forceCharset . '";' . "\n";
+            }
 
             file_put_contents($resultFile, $charsets . $imports . $fonts . $css);
 
@@ -133,34 +143,32 @@ class CSS extends MinifyComponent
     /**
      * @param string $code
      */
-    protected function removeCssComments(&$code)
-    {
-        if (true === $this->view->removeComments) {
-            $code = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $code);
-        }
-    }
-
-    /**
-     * @param string $code
-     */
     protected function expandImports(&$code)
     {
-        if (true === $this->view->expandImports) {
-            preg_match_all('|\@import\s([^;]+);|is', str_replace('&amp;', '&', $code), $m);
+        if (true !== $this->view->expandImports) {
+            return;
+        }
 
-            if (!empty($m[0])) {
-                foreach ($m[0] as $k => $v) {
-                    $import_url = $m[1][$k];
+        preg_match_all('|\@import\s([^;]+);|i', str_replace('&amp;', '&', $code), $m);
 
-                    if (!empty($import_url)) {
-                        $import_content = $this->_getImportContent($import_url);
+        if (!isset($m[0])) {
+            return;
+        }
 
-                        if (!empty($import_content)) {
-                            $code = str_replace($m[0][$k], $import_content, $code);
-                        }
-                    }
-                }
+        foreach ((array)$m[0] as $k => $v) {
+            $importUrl = $m[1][$k];
+
+            if (empty($importUrl)) {
+                continue;
             }
+
+            $importContent = $this->_getImportContent($importUrl);
+
+            if (null === $importContent) {
+                continue;
+            }
+
+            $code = str_replace($m[0][$k], $importContent, $code);
         }
     }
 
@@ -209,7 +217,7 @@ class CSS extends MinifyComponent
 
         preg_match_all($pattern, $code, $m);
 
-        foreach ($m[0] as $string) {
+        foreach ((array)$m[0] as $string) {
             $string = $handler($string);
             $code = str_replace($string, '', $code);
 
@@ -220,52 +228,67 @@ class CSS extends MinifyComponent
     }
 
     /**
-     * @param string $url
+     * @param string|null $url
      * @return null|string
      */
     protected function _getImportContent($url)
     {
-        $result = null;
-
-        if ('url(' === mb_substr($url, 0, 4)) {
-            $url = str_replace(['url(\'', 'url("', 'url(', '\')', '")', ')'], '', $url);
-
-            if (mb_substr($url, 0, 2) === '//') {
-                $url = preg_replace('|^//|', 'http://', $url, 1);
-            }
-
-            if (!empty($url)) {
-                if (!in_array(mb_substr($url, 0, 4), ['http', 'ftp:'], true)) {
-                    $url = \Yii::getAlias($this->view->basePath . $url);
-                }
-
-                $context = [
-                    'ssl' => [
-                        'verify_peer'      => false,
-                        'verify_peer_name' => false,
-                    ],
-                ];
-
-                $result = file_get_contents($url, null, stream_context_create($context));
-            }
+        if (null === $url || '' === $url) {
+            return null;
         }
 
-        return $result;
+        if (0 !== mb_strpos($url, 'url(')) {
+            return null;
+        }
+
+        $currentUrl = str_replace(['url(\'', 'url("', 'url(', '\')', '")', ')'], '', $url);
+
+        if (0 === mb_strpos($currentUrl, '//')) {
+            $currentUrl = preg_replace('|^//|', 'http://', $currentUrl, 1);
+        }
+
+        if (null === $currentUrl || '' === $currentUrl) {
+            return null;
+        }
+
+        if (!in_array(mb_substr($currentUrl, 0, 4), ['http', 'ftp:'], true)) {
+            /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
+            $currentUrl = $this->view->basePath . $currentUrl;
+        }
+
+        if (false === $currentUrl) {
+            return null;
+        }
+
+        return $this->_fetchImportFileContent($currentUrl);
     }
-    
+
+    /**
+     * @param string $url
+     * @return bool|string
+     */
+    protected function _fetchImportFileContent($url)
+    {
+        $context = [
+            'ssl' => [
+                'verify_peer'      => false,
+                'verify_peer_name' => false,
+            ],
+        ];
+
+        return file_get_contents($url, null, stream_context_create($context));
+    }
+
     /**
      * If the <link> tag has a media="type" attribute, wrap the content in an equivalent media query
-     * @param string $tag_html HTML of the link tag
+     * @param string $html HTML of the link tag
      * @param string $content CSS content
      * @return string $content CSS content wrapped with media query, if applicable
      */
-    public static function convertMediaTypeAttributeToMediaQuery($html, $content)
+    protected function convertMediaTypeAttributeToMediaQuery($html, &$content)
     {
-        if (preg_match('/\bmedia=(["\'])([^"\']+)\1/i', $html, $m)) {
-            if ($m[2] !== 'all') {
-                $content = '@media '.$m[2].'{' . $content . '}';
-            }
-        }        
-        return $content;
+        if (preg_match('/\bmedia=(["\'])([^"\']+)\1/i', $html, $m) && isset($m[2]) && $m[2] !== 'all') {
+            $content = '@media ' . $m[2] . ' {' . $content . '}';
+        }
     }
 }

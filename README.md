@@ -68,7 +68,7 @@ return [
             	'app-[^.].js', // you may use regexp
             ],
             'excludeBundles' => [
-            	\dev\helloworld\AssetBundle::class, // exclude this bundle from minification
+            	\app\helloworld\AssetBundle::class, // exclude this bundle from minification
             ],
 		]
 	]

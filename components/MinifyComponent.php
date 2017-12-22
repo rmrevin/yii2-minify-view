@@ -8,6 +8,8 @@
 namespace rmrevin\yii\minify\components;
 
 use rmrevin\yii\minify\View;
+use yii\caching\Cache;
+use yii\caching\TagDependency;
 
 /**
  * Class MinifyComponent
@@ -15,6 +17,8 @@ use rmrevin\yii\minify\View;
  */
 abstract class MinifyComponent
 {
+
+    const CACHE_TAG = 'minify-view-tag';
 
     /**
      * @var View
@@ -38,7 +42,10 @@ abstract class MinifyComponent
      */
     protected function getAbsoluteFilePath($file)
     {
-        return \Yii::getAlias($this->view->basePath) . str_replace(\Yii::getAlias($this->view->webPath), '', $this->cleanFileName($file));
+        $basePath = $this->view->basePath;
+        $webPath = $this->view->webPath;
+
+        return $basePath . str_replace($webPath, '', $this->cleanFileName($file));
     }
 
     /**
@@ -47,7 +54,7 @@ abstract class MinifyComponent
      */
     protected function cleanFileName($file)
     {
-        return (strpos($file, '?'))
+        return false !== mb_strpos($file, '?')
             ? parse_url($file, PHP_URL_PATH)
             : $file;
     }
@@ -60,8 +67,8 @@ abstract class MinifyComponent
     protected function thisFileNeedMinify($file, $html)
     {
         return !$this->isUrl($file, false)
-        && !$this->isContainsConditionalComment($html)
-        && !$this->isExcludedFile($file);
+            && !$this->isContainsConditionalComment($html)
+            && !$this->isExcludedFile($file);
     }
 
     /**
@@ -75,9 +82,10 @@ abstract class MinifyComponent
             return str_replace('/', '\/', $val);
         }, $this->view->schemas);
 
-        $regexp = '#^(' . implode('|', $schemas) . ')#is';
+        $regexp = '#^(' . implode('|', $schemas) . ')#i';
+
         if ($checkSlash) {
-            $regexp = '#^(/|\\\\|' . implode('|', $schemas) . ')#is';
+            $regexp = '#^(/|\\\\|' . implode('|', $schemas) . ')#i';
         }
 
         return (bool)preg_match($regexp, $url);
@@ -89,7 +97,7 @@ abstract class MinifyComponent
      */
     protected function isContainsConditionalComment($string)
     {
-        return strpos($string, '<![endif]-->') !== false;
+        return mb_strpos($string, '<![endif]-->') !== false;
     }
 
     /**
@@ -100,15 +108,13 @@ abstract class MinifyComponent
     {
         $result = false;
 
-        if (!empty($this->view->excludeFiles)) {
-            foreach ((array)$this->view->excludeFiles as $excludedFile) {
-                $reg = sprintf('!%s!i', $excludedFile);
-
-                if (preg_match($reg, $file)) {
-                    $result = true;
-                    break;
-                }
+        foreach ((array)$this->view->excludeFiles as $excludedFile) {
+            if (!preg_match('!' . $excludedFile . '!i', $file)) {
+                continue;
             }
+
+            $result = true;
+            break;
         }
 
         return $result;
@@ -120,12 +126,15 @@ abstract class MinifyComponent
      */
     protected function prepareResultFile($resultFile)
     {
-        $file = sprintf('%s%s', \Yii::getAlias($this->view->webPath), str_replace(\Yii::getAlias($this->view->basePath), '', $resultFile));
+        $basePath = $this->view->basePath;
+        $webPath = $this->view->webPath;
+
+        $file = sprintf('%s%s', $webPath, str_replace($basePath, '', $resultFile));
 
         $AssetManager = $this->view->getAssetManager();
 
         if ($AssetManager->appendTimestamp && ($timestamp = @filemtime($resultFile)) > 0) {
-            $file .= "?v=$timestamp";
+            $file .= '?v=' . $timestamp;
         }
 
         return $file;
@@ -138,22 +147,62 @@ abstract class MinifyComponent
     protected function _getSummaryFilesHash($files)
     {
         $result = '';
+
         foreach ($files as $file => $html) {
             $path = $this->getAbsoluteFilePath($file);
 
-            if ($this->thisFileNeedMinify($file, $html) && file_exists($path)) {
-                switch ($this->view->fileCheckAlgorithm) {
-                    default:
-                    case 'filemtime':
-                        $result .= filemtime($path) . $file;
-                        break;
-                    case 'sha1':
-                        $result .= sha1_file($path);
-                        break;
-                }
+            if (!$this->thisFileNeedMinify($file, $html) || !file_exists($path)) {
+                continue;
+            }
+
+            switch ($this->view->fileCheckAlgorithm) {
+                default:
+                case 'filemtime':
+                    $result .= filemtime($path) . $file;
+                    break;
+                case 'sha1': // deprecated
+                case 'hash':
+                    $result .= hash_file($this->view->currentHashAlgo, $path);
+                    break;
             }
         }
 
-        return sha1($result);
+        return hash($this->view->currentHashAlgo, $result);
+    }
+
+    /**
+     * @param string $file
+     * @return string
+     */
+    protected function buildCacheKey($file)
+    {
+        return hash('sha1', __CLASS__ . '/' . $file);
+    }
+
+    /**
+     * @param string $key
+     * @return string|false
+     */
+    protected function getFromCache($key)
+    {
+        if ($this->view->cache instanceof Cache) {
+            return $this->view->cache->get($key);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $key
+     * @param string $content
+     * @return bool
+     */
+    protected function saveToCache($key, $content)
+    {
+        if ($this->view->cache instanceof Cache) {
+            return $this->view->cache->set($key, $content, null, new TagDependency(['tags' => static::CACHE_TAG]));
+        }
+
+        return false;
     }
 }

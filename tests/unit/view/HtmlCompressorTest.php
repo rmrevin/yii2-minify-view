@@ -25,27 +25,11 @@ class HtmlCompressorTest extends TestCase
             <pre>    Inside pre\n    <span>test</span></pre>
         </div>";
 
-        $this->assertEquals(
-            "<div class=\" test\" data>\n<p>Inside text</p>\n<!-- comment -->\n<pre>    Inside pre\n    <span>test</span></pre>\n</div>",
-            HtmlCompressor::compress($str)
-        );
-        $this->assertEquals(
-            "<div class=\" test\" data>\n<p>Inside text</p>\n\n<pre>    Inside pre\n    <span>test</span></pre>\n</div>",
-            HtmlCompressor::compress($str, ['no-comments' => true])
-        );
-        $this->assertEquals(
-            "<div class=\" test\" data><p>Inside text</p><!-- comment --><pre>    Inside pre\n    <span>test</span></pre></div>",
-            HtmlCompressor::compress($str, ['extra' => true])
-        );
-        $this->assertEquals(
-            "<div class=\" test\" data><p>Inside text</p><pre>    Inside pre\n    <span>test</span></pre></div>",
-            HtmlCompressor::compress($str, ['no-comments' => true, 'extra' => true])
-        );
+        $result = '<div
+class="                   test"                  data><p>Inside text</p><pre>    Inside pre
+    <span>test</span></pre></div>';
 
-        $this->expectOutputString('Original Size: 195
-Compressed Size: 115
-Savings: 41.03%
-');
-        HtmlCompressor::compress($str, ['stats' => true]);
+        $this->assertEquals($result, HtmlCompressor::compress($str));
+        $this->assertEquals($result, \Minify_HTML::minify($str));
     }
 }

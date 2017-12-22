@@ -72,12 +72,24 @@ class JS extends MinifyComponent
      */
     protected function process($position, $options, $files)
     {
-        $resultFile = sprintf('%s/%s.js', $this->view->minifyPath, $this->_getSummaryFilesHash($files));
+        $minifyPath = $this->view->minifyPath;
+        $hash = $this->_getSummaryFilesHash($files);
+
+        $resultFile = $minifyPath . DIRECTORY_SEPARATOR . $hash . '.js';
 
         if (!file_exists($resultFile)) {
             $js = '';
 
             foreach ($files as $file => $html) {
+                $cacheKey = $this->buildCacheKey($file);
+
+                $content = $this->getFromCache($cacheKey);
+
+                if (false !== $content) {
+                    $js .= $content;
+                    continue;
+                }
+
                 $file = $this->getAbsoluteFilePath($file);
 
                 $content = '';
@@ -90,16 +102,13 @@ class JS extends MinifyComponent
                     $content .= file_get_contents($file) . ';' . "\n";
                 }
 
+                if ($this->view->minifyJs) {
+                    $content = JSMin::minify($content);
+                }
+
+                $this->saveToCache($cacheKey, $content);
+
                 $js .= $content;
-            }
-
-            if ($this->view->removeComments) {
-                $this->removeJsComments($js);
-            }
-
-            if ($this->view->minifyJs) {
-                $js = (new JSMin($js))
-                    ->min();
             }
 
             file_put_contents($resultFile, $js);
@@ -112,15 +121,5 @@ class JS extends MinifyComponent
         $file = $this->prepareResultFile($resultFile);
 
         $this->view->jsFiles[$position][$file] = Html::jsFile($file, $options);
-    }
-
-    /**
-     * Remove JS comments
-     * @param string $code
-     * @return string Code without comments
-     */
-    public static function removeJsComments($code)
-    {
-        return preg_replace('/(?:(?:\/\*(?:[^*]|(?:\*+[^*\/]))*\*+\/)|(?:(?<!\:|\\\|\'|\")\/\/.*))/', '', $code);
     }
 }

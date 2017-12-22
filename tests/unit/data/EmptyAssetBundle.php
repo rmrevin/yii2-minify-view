@@ -7,11 +7,12 @@
 
 namespace rmrevin\yii\minify\tests\unit\data;
 
+use yii\web\AssetBundle;
+
 /**
  * Class EmptyAssetBundle
  * @package rmrevin\yii\minify\tests\unit\data
  */
-class EmptyAssetBundle extends \yii\web\AssetBundle
+class EmptyAssetBundle extends AssetBundle
 {
-
 }
