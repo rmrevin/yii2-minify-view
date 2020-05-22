@@ -141,6 +141,11 @@ class CSS extends MinifyComponent
         $this->view->cssFiles[$file] = self::cssFile($file, $this->view->cssOptions);
     }
 
+    /**
+     * @param $url
+     * @param array $options
+     * @return string
+     */
     public static function cssFile($url, $options = [])
     {
         if (!isset($options['rel'])) {
@@ -171,6 +176,11 @@ class CSS extends MinifyComponent
         return Html::tag('link', '', $options);
     }
 
+    /**
+     * @param $content
+     * @param $condition
+     * @return string
+     */
     private static function wrapIntoCondition($content, $condition)
     {
         if (strpos($condition, '!IE') !== false) {
