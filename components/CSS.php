@@ -8,6 +8,7 @@
 namespace rmrevin\yii\minify\components;
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 
 /**
  * Class CSS
@@ -137,7 +138,46 @@ class CSS extends MinifyComponent
 
         $file = $this->prepareResultFile($resultFile);
 
-        $this->view->cssFiles[$file] = Html::cssFile($file);
+        $this->view->cssFiles[$file] = self::cssFile($file, $this->view->cssOptions);
+    }
+
+    public static function cssFile($url, $options = [])
+    {
+        if (!isset($options['rel'])) {
+            $options['rel'] = 'stylesheet';
+        }
+        $options['href'] = Url::to($url);
+
+        if (isset($options['condition'])) {
+            $condition = $options['condition'];
+            unset($options['condition']);
+            return self::wrapIntoCondition(Html::tag('link', '', $options), $condition);
+        } elseif (isset($options['noscript']) && $options['noscript'] === true) {
+            unset($options['noscript']);
+            return '<noscript>' . Html::tag('link', '', $options) . '</noscript>';
+        } elseif (isset($options['preload']) && $options['preload'] === true) {
+            unset($options['preload']);
+            $preloadOptions = [
+                "as" => "style",
+                "rel" => "preload",
+                "href" => $options["href"]
+            ];
+            $preload = Html::tag('link', '', $preloadOptions);
+            $preload .= Html::tag('link', '', $options);
+
+            return $preload;
+        }
+
+        return Html::tag('link', '', $options);
+    }
+
+    private static function wrapIntoCondition($content, $condition)
+    {
+        if (strpos($condition, '!IE') !== false) {
+            return "<!--[if $condition]><!-->\n" . $content . "\n<!--<![endif]-->";
+        }
+
+        return "<!--[if $condition]>\n" . $content . "\n<![endif]-->";
     }
 
     /**
