@@ -40,6 +40,11 @@ class View extends \yii\web\View
     public $minifyCss = true;
 
     /**
+     * @var array
+     */
+    public $cssOptions = [];
+
+    /**
      * @var bool
      */
     public $concatJs = true;
