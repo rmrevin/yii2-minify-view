@@ -326,7 +326,7 @@ class CSS extends MinifyComponent
             ],
         ];
 
-        return file_get_contents($url, null, stream_context_create($context));
+        return file_get_contents($url, false, stream_context_create($context));
     }
 
     /**
