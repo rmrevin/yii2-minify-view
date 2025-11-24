@@ -25,8 +25,8 @@
   ],
   "require": {
     "yiisoft/yii2": "^2.0",
-    "mrclay/minify": "3.0.7",
-    "pimple/pimple": "~3.2.0"
+    "mrclay/minify": "^4.0.1",
+    "pimple/pimple": "^3.5.0"
   },
   "require-dev": {
     "phpdocumentor/reflection-docblock": "~3.1.0",
